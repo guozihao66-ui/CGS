@@ -2,74 +2,54 @@
 
 CGS Cobbler is an internal consulting workflow prototype for CGS Advisors.
 
-This upgraded prototype keeps the original product identity and dark consulting-studio style, but now behaves like a more convincing Google Drive-connected engagement studio.
-
 ## File to open
 
 - Open `index.html` directly in a browser
-- No build step required
+- This remains a standalone prototype
 
-## What is now genuinely dynamic
+## What changed
 
-The prototype now recomputes all major outputs from the active client folder state:
+This version preserves the original prototype presentation style and overall structure, while adding functional enhancements:
 
-- project classification
-- visible tags
-- matched frameworks
-- matched archetypes
-- matched templates
-- matched governance rules
-- engagement archetype recommendation
-- 2–4 week diagnostic workplan
-- interview guide
-- storyline skeleton
-- human review warnings
+- visible Firm Library and Current Client Folder knowledge layers
+- client folder selection in intake
+- local company file upload support
+- Google Drive-style connected source panel
+- folder-aware classification and matching behavior
 - visible evidence used from client files
+- starter-pack outputs influenced by current client folder
+- smarter human review warnings that vary by company context
+- compact workflow strip inside the knowledge activation step
 
-## Google Drive-connected knowledge model
+## Dynamic interactions
 
-The product uses two visible knowledge layers:
+Switching the active client folder or uploading custom files now changes:
 
-1. **Firm Library**
-   - represented as a structured reusable asset pack
-   - frameworks
-   - archetypes
-   - templates
-   - governance / QA rules
+- project classification emphasis
+- visible tags
+- matched asset framing
+- starter kit recommendation context
+- evidence shown to the user
+- review warnings
 
-2. **Current Client Folder**
-   - represented as either:
-     - preloaded client folders, or
-     - uploaded local company files
-   - file names and file text are read in-browser and mapped into a simulated Google Drive client folder state
+## Google Drive-connected model
 
-The logic is intentionally demo-safe and local:
+- **Firm Library** is represented as a fixed reusable consulting asset layer
+- **Current Client Folder** is represented as either a preset folder or uploaded local company files
+- The prototype combines the two to simulate Google Drive-connected consulting workflow behavior without requiring unstable live enterprise integration
 
-- Firm Library tells the system how to think
-- Current Client Folder tells the system what this company needs
-
-## Demo script
+## Demo flow
 
 1. Open `index.html`
-2. Start with **CrestPoint Advisory**
-   - show the Connected Knowledge Sources panel
-   - point out Firm Library vs Current Client Folder
-   - show that standardization-oriented assets and warnings are matched
-3. Switch to **Northstar Components**
-   - show the project classification change to AI enablement
-   - show different frameworks, templates, and starter-kit outputs
-   - show different review warnings around weak quantified AI claims
-4. Switch to **Apex Enterprise Group**
-   - show the classification shift to transformation inertia / sponsorship reset
-   - show governance and sponsor-related evidence
-   - show different review warnings around sponsor ambiguity
-5. Upload a few custom files
-   - show that the Current Client Folder changes to a custom upload state
-   - show the evidence panel updating from uploaded content
-   - show the starter kit and review gate changing again
-
-## Notes
-
-- This is still a lightweight prototype
-- It does not require unstable live enterprise Google Drive integration
-- The experience is designed to be visually credible, locally runnable, and responsive for demos
+2. In intake, switch between preset client folders
+3. Optionally upload several local company files
+4. Move to Knowledge Activation and show:
+   - Connected Knowledge Sources
+   - workflow strip
+   - why the result is different
+5. Move to Starter Pack and show:
+   - archetype recommendation changing
+   - retrieved client files
+6. Move to Wear-Test Review and show:
+   - evidence used
+   - different warnings by company context
