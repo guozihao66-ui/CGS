@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CGS Cobbler — Engagement Studio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #090a13; color: #fff; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+  textarea, input { font-family: inherit; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin-rev { to { transform: rotate(-360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes ping { 75%,100%{transform:scale(1.6);opacity:0} }
+  @keyframes grow { from{width:0%} to{width:100%} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+  .spin { animation: spin 4s linear infinite; }
+  .spin-rev { animation: spin-rev 3s linear infinite; }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+  .ping { animation: ping 1.5s cubic-bezier(0,0,.2,1) infinite; }
+  .grow-bar { animation: grow 1.8s ease-in-out forwards; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const cx = (...args) => args.filter(Boolean).join(" ");
+
+const SAMPLE_BRIEF = {
+  clientName: "Northstar Industrial Distribution",
+  industry: "Industrial Distribution",
+  objective: "Prioritize AI use cases and define a phased transformation roadmap",
+  challenge: "Leadership is interested in AI but lacks clarity on where to start, what capabilities are required, and how to sequence investment without creating execution risk",
+  timeline: "8 weeks",
+  urgency: "High",
+};
+
+const KR = {
+  frameworks: [
+    { id:"f1", name:"AI Readiness Framework", fit:97, desc:"Evaluates organizational readiness across data, talent, governance, and technology dimensions before AI deployment.", uses:34, tag:"Flagship" },
+    { id:"f2", name:"Transformation Sequencing Model", fit:91, desc:"Guides clients through phased capability-building to minimize execution risk while accelerating value capture.", uses:28, tag:"Core" },
+    { id:"f3", name:"Use Case Prioritization Matrix", fit:88, desc:"Scores AI use cases on feasibility, value, and strategic alignment to produce a prioritized investment roadmap.", uses:19, tag:"Method" },
+  ],
+  engagements: [
+    { id:"e1", client:"Global Logistics Co.", year:2024, sector:"Industrial / Logistics", outcome:"Identified 6 priority AI use cases; delivered 90-day readiness sprint plan.", sim:94 },
+    { id:"e2", client:"Meridian Manufacturing", year:2023, sector:"Manufacturing", outcome:"Built AI governance operating model; reduced use case scope by 60% to focus execution.", sim:81 },
+    { id:"e3", client:"Summit Distribution Group", year:2024, sector:"Distribution", outcome:"Sequenced AI investment across 3 waves; stood up center of excellence in 12 weeks.", sim:78 },
+  ],
+  hypotheses: [
+    { id:"h1", text:"Leadership alignment is weak — executive sponsors exist but cross-functional buy-in is fragmented.", conf:"High" },
+    { id:"h2", text:"Governance is immature — no formal AI policy, data ownership, or model risk framework in place.", conf:"High" },
+    { id:"h3", text:"Use case selection is too broad — the pipeline likely contains 20+ ideas with no clear prioritization criteria.", conf:"Medium" },
+    { id:"h4", text:"Data infrastructure is partially ready — transactional data exists but is siloed across legacy ERP systems.", conf:"Medium" },
+  ],
+  templates: [
+    { id:"t1", name:"AI Transformation Kick-off Deck", type:"PPTX", pages:24 },
+    { id:"t2", name:"Use Case Scoring Workbook", type:"XLSX", pages:8 },
+    { id:"t3", name:"Stakeholder Interview Guide", type:"DOCX", pages:6 },
+    { id:"t4", name:"90-Day Roadmap Canvas", type:"PPTX", pages:12 },
+  ],
+};
+
+const SP = {
+  problemStatement: "Northstar Industrial Distribution faces a critical strategic inflection point: while executive leadership has identified AI as a growth and efficiency lever, the organization lacks the structured approach needed to translate ambition into execution. Without a clear prioritization framework, defined capability requirements, and a sequenced investment roadmap, Northstar risks dispersing effort across low-value use cases, creating technical debt, and failing to build the internal capabilities needed for sustained AI adoption. CGS is engaged to provide the strategic clarity and execution architecture that converts AI interest into competitive advantage.",
+  issueTree: { label:"How should Northstar sequence its AI transformation?", children:[
+    { label:"Where is Northstar's current AI readiness?", children:[
+      { label:"What data assets exist and are they AI-ready?" },
+      { label:"What technical infrastructure is in place?" },
+      { label:"What talent and governance structures exist?" },
+    ]},
+    { label:"Which AI use cases should be prioritized?", children:[
+      { label:"What is the full universe of potential use cases?" },
+      { label:"How do use cases score on value vs. feasibility?" },
+      { label:"What sequencing minimizes execution risk?" },
+    ]},
+    { label:"What capabilities must be built?", children:[
+      { label:"What governance model is required?" },
+      { label:"What talent and partnerships are needed?" },
+      { label:"What technology stack decisions must be made?" },
+    ]},
+  ]},
+  workstreams: [
+    { id:"ws1", name:"Current-State Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"AI Readiness Assessment Report", activities:["Stakeholder interviews (8–10)","Data infrastructure audit","Use case inventory collection","Governance maturity scan"] },
+    { id:"ws2", name:"Use Case Prioritization", weeks:"Weeks 2–4", color:"#8b5cf6", deliverable:"Prioritized AI Use Case Matrix", activities:["Use case scoring workshops","Feasibility & value analysis","Executive alignment sessions","Pilot selection recommendation"] },
+    { id:"ws3", name:"Governance & Operating Model", weeks:"Weeks 3–6", color:"#a78bfa", deliverable:"AI Governance Blueprint", activities:["Policy framework design","AI ownership model definition","Risk and ethics guidelines","Center of Excellence blueprint"] },
+    { id:"ws4", name:"Phased Roadmap Creation", weeks:"Weeks 6–8", color:"#c4b5fd", deliverable:"90/180/365-Day AI Roadmap", activities:["Wave sequencing and milestones","Investment sizing","Capability build plan","Executive presentation and sign-off"] },
+  ],
+  roadmap: [
+    { label:"30 Days", subtitle:"Diagnose & Align", color:"#6366f1", items:["Complete AI readiness assessment","Conduct 10 stakeholder interviews","Inventory 20+ potential use cases","Align on prioritization criteria"] },
+    { label:"60 Days", subtitle:"Prioritize & Design", color:"#8b5cf6", items:["Finalize top 3–5 pilot use cases","Design governance operating model","Define capability build requirements","Draft CoE structure and charter"] },
+    { label:"90 Days", subtitle:"Sequence & Launch", color:"#a78bfa", items:["Deliver phased 3-wave AI roadmap","Initiate Pilot 1 sprint planning","Present investment case to leadership","Mobilize internal AI taskforce"] },
+  ],
+  execSummary: "CGS recommends a capability-first AI transformation beginning with 3 high-value pilot use cases and a 90-day readiness sprint. Northstar's core challenge is not a shortage of AI ambition — it is the absence of a structured approach to translate interest into disciplined execution. Our engagement will deliver a prioritized use case roadmap, an AI governance blueprint, and a phased investment plan that sequences capability-building ahead of deployment at scale. The result will be an organization ready to act decisively on AI — with executive alignment, defined ownership, and a clear path to measurable value within 90 days.",
+  slides: [
+    { type:"title", text:"AI Transformation Roadmap" },
+    { type:"subtitle", text:"Northstar Industrial Distribution — Engagement Kickoff" },
+    { type:"section", text:"1. Strategic Context & Why Now" },
+    { type:"section", text:"2. Current-State AI Readiness Assessment" },
+    { type:"section", text:"3. Use Case Universe & Prioritization Framework" },
+    { type:"section", text:"4. Recommended 3-Wave Roadmap" },
+    { type:"section", text:"5. Governance & Operating Model Design" },
+    { type:"section", text:"6. 90-Day Sprint Plan & Investment Case" },
+    { type:"section", text:"7. Next Steps & Engagement Workplan" },
+  ],
+};
+
+const REVIEW_FLAGS = [
+  { id:"rf1", sev:"high", label:"Validate data availability assumptions", detail:"The diagnostic workstream assumes access to ERP transaction data within Week 1. Confirm data access with Northstar IT before scoping the readiness assessment.", status:"pending" },
+  { id:"rf2", sev:"high", label:"Confirm stakeholder sponsorship", detail:"Hypothesis H1 (weak leadership alignment) requires validation. Identify executive sponsor and confirm cross-functional steering committee before finalizing governance workstream.", status:"pending" },
+  { id:"rf3", sev:"medium", label:"Refine ROI case before client presentation", detail:"The investment case uses industrial sector benchmarks. Replace with Northstar-specific financials or clearly caveat assumptions in the executive summary.", status:"pending" },
+  { id:"rf4", sev:"medium", label:"8-week timeline is aggressive for 4 workstreams", detail:"Workstreams 3 and 4 overlap significantly. Consider flagging to engagement lead: either extend to 10 weeks or descope governance deliverable to a framework-only output.", status:"pending" },
+  { id:"rf5", sev:"low", label:"Verify prior engagement confidentiality", detail:"Global Logistics Co. case (similarity 94%) may contain client-confidential data. Anonymize before surfacing in client-facing materials.", status:"pending" },
+];
+
+// ── Shared UI ────────────────────────────────────────────────────────────────
+
+function FitBar({ value, color="#6366f1" }) {
+  return (
+    <div style={{height:3,width:"100%",borderRadius:99,background:"rgba(255,255,255,0.07)",overflow:"hidden"}}>
+      <div style={{height:"100%",width:`${value}%`,background:color,borderRadius:99,transition:"width .7s ease"}} />
+    </div>
+  );
+}
+
+function Badge({ children, color="indigo" }) {
+  const styles = {
+    indigo:{background:"rgba(99,102,241,0.15)",color:"#a5b4fc",border:"1px solid rgba(99,102,241,0.25)"},
+    violet:{background:"rgba(139,92,246,0.15)",color:"#c4b5fd",border:"1px solid rgba(139,92,246,0.25)"},
+    amber:{background:"rgba(245,158,11,0.15)",color:"#fcd34d",border:"1px solid rgba(245,158,11,0.25)"},
+    emerald:{background:"rgba(16,185,129,0.15)",color:"#6ee7b7",border:"1px solid rgba(16,185,129,0.25)"},
+    rose:{background:"rgba(244,63,94,0.15)",color:"#fda4af",border:"1px solid rgba(244,63,94,0.25)"},
+    slate:{background:"rgba(100,116,139,0.15)",color:"#94a3b8",border:"1px solid rgba(100,116,139,0.25)"},
+  };
+  return (
+    <span style={{...styles[color]||styles.indigo,display:"inline-flex",alignItems:"center",padding:"2px 8px",borderRadius:5,fontSize:11,fontWeight:600,letterSpacing:"0.01em"}}>
+      {children}
+    </span>
+  );
+}
+
+function CheckBox({ checked, color="#6366f1" }) {
+  return (
+    <div style={{width:16,height:16,borderRadius:4,border:`1px solid ${checked?color:"rgba(255,255,255,0.2)"}`,background:checked?color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
+      {checked && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+    </div>
+  );
+}
+
+function StepDot({ num, active, done }) {
+  const bg = done ? "#6366f1" : active ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.05)";
+  const border = done ? "#6366f1" : active ? "#818cf8" : "rgba(255,255,255,0.1)";
+  const col = done || active ? (done ? "#fff" : "#a5b4fc") : "rgba(255,255,255,0.25)";
+  return (
+    <div style={{width:32,height:32,borderRadius:"50%",background:bg,border:`1px solid ${border}`,display:"flex",alignItems:"center",justifyContent:"center",color:col,fontSize:13,fontWeight:700,transition:"all .3s",flexShrink:0}}>
+      {done ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : num}
+    </div>
+  );
+}
+
+function IssueNode({ node, depth=0 }) {
+  const [open, setOpen] = useState(depth < 1);
+  const has = node.children && node.children.length > 0;
+  const bg = depth===0 ? "rgba(99,102,241,0.12)" : depth===1 ? "rgba(255,255,255,0.04)" : "transparent";
+  const border = depth===0 ? "rgba(99,102,241,0.25)" : depth===1 ? "rgba(255,255,255,0.07)" : "transparent";
+  const col = depth===0 ? "#e0e7ff" : depth===1 ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.45)";
+  return (
+    <div style={{marginLeft: depth>0 ? 20 : 0, position:"relative"}}>
+      {depth>0 && <div style={{position:"absolute",left:-16,top:0,width:1,height:20,background:"rgba(99,102,241,0.2)"}}/>}
+      {depth>0 && <div style={{position:"absolute",left:-16,top:16,width:16,height:1,background:"rgba(99,102,241,0.2)"}}/>}
+      <div onClick={()=>has&&setOpen(!open)} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 12px",borderRadius:10,marginBottom:4,background:bg,border:`1px solid ${border}`,color:col,fontSize:depth===0?13:depth===1?12:11,fontWeight:depth===0?600:400,cursor:has?"pointer":"default",transition:"all .15s"}}>
+        {has && <svg style={{width:12,height:12,marginTop:1,flexShrink:0,transition:"transform .2s",transform:open?"rotate(90deg)":"none",color:"#818cf8"}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
+        {!has && <div style={{width:6,height:6,borderRadius:"50%",background:"rgba(99,102,241,0.5)",marginTop:5,flexShrink:0}}/>}
+        <span>{node.label}</span>
+      </div>
+      {open && has && node.children.map((c,i)=><IssueNode key={i} node={c} depth={depth+1}/>)}
+    </div>
+  );
+}
+
+// ── Screen 1 ─────────────────────────────────────────────────────────────────
+
+function ScreenIntake({ brief, setBrief, onNext }) {
+  const [focused, setFocused] = useState(null);
+  const fields = [
+    { key:"clientName", label:"Client Name", placeholder:"e.g. Northstar Industrial Distribution", type:"input" },
+    { key:"industry", label:"Industry", placeholder:"e.g. Industrial Distribution, Healthcare, Financial Services", type:"input" },
+    { key:"objective", label:"Project Objective", placeholder:"What is the primary goal of this engagement?", type:"textarea" },
+    { key:"challenge", label:"Core Challenge", placeholder:"What problem is the client trying to solve?", type:"textarea" },
+    { key:"timeline", label:"Engagement Timeline", placeholder:"e.g. 8 weeks, 3 months", type:"input" },
+  ];
+  const allFilled = fields.every(f => brief[f.key]?.trim());
+
+  const inputStyle = (key) => ({
+    width:"100%",background: focused===key?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",
+    border: `1px solid ${focused===key?"rgba(99,102,241,0.6)":"rgba(255,255,255,0.1)"}`,
+    borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,
+    outline:"none",resize:"none",fontFamily:"inherit",transition:"all .2s",
+    boxShadow: focused===key ? "0 0 0 3px rgba(99,102,241,0.12)" : "none"
+  });
+
+  return (
+    <div className="fade-in" style={{maxWidth:640,margin:"0 auto",padding:"48px 24px"}}>
+      <div style={{marginBottom:40}}>
+        <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700,marginBottom:12}}>Step 01 — Brief Intake</p>
+        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:12,lineHeight:1.2}}>Describe the engagement.</h1>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15,lineHeight:1.7}}>Tell Cobbler about your new client. The more precise your brief, the sharper the knowledge activation.</p>
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:20}}>
+        {fields.map(f => (
+          <div key={f.key}>
+            <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>{f.label}</label>
+            {f.type==="textarea"
+              ? <textarea rows={3} style={inputStyle(f.key)} placeholder={f.placeholder} value={brief[f.key]||""} onChange={e=>setBrief({...brief,[f.key]:e.target.value})} onFocus={()=>setFocused(f.key)} onBlur={()=>setFocused(null)} />
+              : <input type="text" style={inputStyle(f.key)} placeholder={f.placeholder} value={brief[f.key]||""} onChange={e=>setBrief({...brief,[f.key]:e.target.value})} onFocus={()=>setFocused(f.key)} onBlur={()=>setFocused(null)} />
+            }
+          </div>
+        ))}
+      </div>
+
+      <div style={{marginTop:20}}>
+        <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Urgency</label>
+        <div style={{display:"flex",gap:8}}>
+          {["Standard","High","Critical"].map(u=>{
+            const sel = brief.urgency===u;
+            const c = u==="Critical"?"rgba(244,63,94,":"u"==="High"?"rgba(245,158,11,":"rgba(99,102,241,";
+            const col = u==="Critical"?"#fda4af":u==="High"?"#fcd34d":"#a5b4fc";
+            return (
+              <button key={u} onClick={()=>setBrief({...brief,urgency:u})} style={{flex:1,padding:"10px 0",borderRadius:12,fontSize:13,fontWeight:600,cursor:"pointer",transition:"all .2s",border:`1px solid ${sel?(u==="Critical"?"rgba(244,63,94,0.5)":u==="High"?"rgba(245,158,11,0.5)":"rgba(99,102,241,0.5)"):"rgba(255,255,255,0.1)"}`,background:sel?(u==="Critical"?"rgba(244,63,94,0.15)":u==="High"?"rgba(245,158,11,0.15)":"rgba(99,102,241,0.15)"):"rgba(255,255,255,0.03)",color:sel?col:"rgba(255,255,255,0.35)"}}>
+                {u}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{marginTop:24,padding:16,borderRadius:12,border:"1px dashed rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.02)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:2}}>Demo Mode</p>
+          <p style={{fontSize:12,color:"rgba(255,255,255,0.2)"}}>Fill with sample Northstar brief</p>
+        </div>
+        <button onClick={()=>setBrief(SAMPLE_BRIEF)} style={{padding:"8px 16px",borderRadius:10,fontSize:12,fontWeight:700,color:"#818cf8",border:"1px solid rgba(99,102,241,0.3)",background:"rgba(99,102,241,0.1)",cursor:"pointer",transition:"all .2s"}}>
+          Load Sample
+        </button>
+      </div>
+
+      <button onClick={onNext} disabled={!allFilled} style={{marginTop:32,width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:allFilled?"pointer":"not-allowed",transition:"all .2s",border:"none",background:allFilled?"#6366f1":"rgba(255,255,255,0.05)",color:allFilled?"#fff":"rgba(255,255,255,0.2)",boxShadow:allFilled?"0 8px 24px rgba(99,102,241,0.3)":"none"}}>
+        Activate Knowledge Base →
+      </button>
+    </div>
+  );
+}
+
+// ── Screen 2 ─────────────────────────────────────────────────────────────────
+
+function ScreenKnowledge({ brief, onNext }) {
+  const [ready, setReady] = useState(false);
+  const [sel, setSel] = useState({f1:true,f2:true,f3:false,e1:true,e2:false});
+  useEffect(()=>{ const t=setTimeout(()=>setReady(true),1900); return()=>clearTimeout(t); },[]);
+
+  if (!ready) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"60vh",gap:24}}>
+      <div style={{position:"relative",width:72,height:72}}>
+        <div className="ping" style={{position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.3)"}}/>
+        <div className="pulse" style={{position:"absolute",inset:6,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.5)"}}/>
+        <div style={{position:"absolute",inset:16,borderRadius:"50%",background:"rgba(99,102,241,0.7)"}}/>
+      </div>
+      <div style={{textAlign:"center"}}>
+        <p style={{color:"#fff",fontSize:18,fontWeight:700,marginBottom:4}}>Reading the grain…</p>
+        <p style={{color:"rgba(255,255,255,0.35)",fontSize:14}}>Matching your brief against CGS's knowledge base</p>
+      </div>
+      <div style={{width:240,height:3,borderRadius:99,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}>
+        <div className="grow-bar" style={{height:"100%",width:0,background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:99}}/>
+      </div>
+    </div>
+  );
+
+  const toggle = id => setSel(s=>({...s,[id]:!s[id]}));
+  const activeCount = Object.values(sel).filter(Boolean).length;
+
+  return (
+    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
+      <div style={{marginBottom:36}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+          <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700}}>Step 02 — Knowledge Activation</p>
+          <span style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#6ee7b7",fontWeight:600}}>
+            <span className="pulse" style={{width:7,height:7,borderRadius:"50%",background:"#10b981",display:"inline-block"}}/>
+            {activeCount + 4} assets activated
+          </span>
+        </div>
+        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>Knowledge patterns found.</h1>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Cobbler matched <strong style={{color:"rgba(255,255,255,0.7)"}}>{brief.clientName||"your client"}</strong> against CGS's proprietary frameworks, prior engagements, and strategic hypotheses. Confirm what to include.</p>
+      </div>
+
+      {/* Frameworks */}
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em"}}>CGS Frameworks</p>
+          <Badge color="indigo">3 matches</Badge>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+          {KR.frameworks.map(fw=>(
+            <div key={fw.id} onClick={()=>toggle(fw.id)} style={{padding:16,borderRadius:16,border:`1px solid ${sel[fw.id]?"rgba(99,102,241,0.45)":"rgba(255,255,255,0.07)"}`,background:sel[fw.id]?"rgba(99,102,241,0.08)":"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all .2s"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                <Badge color={fw.tag==="Flagship"?"indigo":fw.tag==="Core"?"violet":"slate"}>{fw.tag}</Badge>
+                <CheckBox checked={sel[fw.id]} color="#6366f1"/>
+              </div>
+              <p style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:6}}>{fw.name}</p>
+              <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",lineHeight:1.6,marginBottom:12}}>{fw.desc}</p>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"rgba(255,255,255,0.35)",marginBottom:6}}>
+                <span>Fit score</span><span style={{color:"#818cf8",fontWeight:700}}>{fw.fit}%</span>
+              </div>
+              <FitBar value={fw.fit} color="#6366f1"/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Prior Engagements */}
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Prior Engagements</p>
+          <Badge color="violet">3 similar cases</Badge>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {KR.engagements.map(e=>(
+            <div key={e.id} onClick={()=>toggle(e.id)} style={{display:"flex",alignItems:"center",gap:16,padding:"14px 16px",borderRadius:12,border:`1px solid ${sel[e.id]?"rgba(139,92,246,0.45)":"rgba(255,255,255,0.07)"}`,background:sel[e.id]?"rgba(139,92,246,0.07)":"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all .2s"}}>
+              <CheckBox checked={sel[e.id]} color="#8b5cf6"/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                  <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>{e.client}</span>
+                  <Badge color="slate">{e.sector}</Badge>
+                  <span style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>{e.year}</span>
+                </div>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.outcome}</p>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontSize:15,fontWeight:800,color:"#c4b5fd"}}>{e.sim}%</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>similar</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginBottom:32}}>
+        {/* Hypotheses */}
+        <div>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Likely Hypotheses</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {KR.hypotheses.map((h,i)=>(
+              <div key={h.id} style={{display:"flex",gap:10,padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <div style={{width:22,height:22,borderRadius:"50%",background:"rgba(99,102,241,0.2)",color:"#a5b4fc",fontSize:10,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>H{i+1}</div>
+                <div>
+                  <p style={{fontSize:11,color:"rgba(255,255,255,0.65)",lineHeight:1.6,marginBottom:6}}>{h.text}</p>
+                  <Badge color={h.conf==="High"?"indigo":"amber"}>{h.conf} confidence</Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Templates */}
+        <div>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Suggested Templates</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {KR.templates.map(t=>(
+              <div key={t.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",transition:"all .15s"}}>
+                <div style={{width:32,height:32,borderRadius:8,background:"rgba(255,255,255,0.05)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <p style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.75)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.name}</p>
+                  <p style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>{t.pages} {t.type==="PPTX"?"slides":"pages"}</p>
+                </div>
+                <Badge color={t.type==="PPTX"?"violet":t.type==="XLSX"?"emerald":"slate"}>{t.type}</Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button onClick={onNext} style={{width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>
+        Generate Starter Pack →
+      </button>
+    </div>
+  );
+}
+
+// ── Screen 3 ─────────────────────────────────────────────────────────────────
+
+function ScreenStarterPack({ brief, onNext }) {
+  const [ready, setReady] = useState(false);
+  const [tab, setTab] = useState("problem");
+  useEffect(()=>{ const t=setTimeout(()=>setReady(true),2200); return()=>clearTimeout(t); },[]);
+
+  if (!ready) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"65vh",gap:24}}>
+      <div style={{position:"relative",width:80,height:80}}>
+        <div className="spin" style={{position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.2)"}}/>
+        <div className="spin-rev" style={{position:"absolute",inset:8,borderRadius:"50%",border:"1px solid rgba(139,92,246,0.25)"}}/>
+        <div style={{position:"absolute",inset:18,borderRadius:"50%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+      </div>
+      <div style={{textAlign:"center"}}>
+        <p style={{color:"#fff",fontSize:18,fontWeight:700,marginBottom:8}}>Crafting the first pair…</p>
+        {["Synthesizing problem statement","Structuring issue tree","Drafting workstreams","Building roadmap"].map((msg,i)=>(
+          <p key={i} style={{fontSize:13,color:"rgba(255,255,255,0.3)",lineHeight:1.9}}>{msg}</p>
+        ))}
+      </div>
+    </div>
+  );
+
+  const tabs = [
+    { id:"problem", label:"Problem Statement" },
+    { id:"issues", label:"Issue Tree" },
+    { id:"workstreams", label:"Workstreams" },
+    { id:"roadmap", label:"30/60/90 Roadmap" },
+    { id:"exec", label:"Exec Summary" },
+    { id:"slide", label:"First-Slide Outline" },
+  ];
+
+  return (
+    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+          <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700}}>Step 03 — Starter Pack</p>
+          <Badge color="emerald">First Pair Drafted</Badge>
+        </div>
+        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>{brief.clientName||"Engagement"} — Starter Pack</h1>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:14}}>AI-generated from brief + activated knowledge. Review each section before proceeding to wear-test.</p>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{display:"flex",gap:4,padding:4,background:"rgba(255,255,255,0.04)",borderRadius:14,border:"1px solid rgba(255,255,255,0.07)",marginBottom:24,overflowX:"auto"}}>
+        {tabs.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{flexShrink:0,padding:"8px 14px",borderRadius:10,fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s",border:"none",background:tab===t.id?"#6366f1":"transparent",color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",whiteSpace:"nowrap"}}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="fade-in" key={tab} style={{minHeight:360}}>
+        {tab==="problem" && (
+          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <div style={{width:28,height:28,borderRadius:8,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </div>
+              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Draft Problem Statement</h3>
+            </div>
+            <p style={{color:"rgba(255,255,255,0.7)",fontSize:14,lineHeight:1.9,borderLeft:"3px solid rgba(99,102,241,0.4)",paddingLeft:16}}>{SP.problemStatement}</p>
+            <p style={{marginTop:16,fontSize:11,color:"rgba(255,255,255,0.25)"}}>Generated from brief synthesis + AI Readiness Framework pattern matching</p>
+          </div>
+        )}
+        {tab==="issues" && (
+          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <div style={{width:28,height:28,borderRadius:8,background:"rgba(139,92,246,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
+              </div>
+              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Issue Tree</h3>
+              <span style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>Click to expand branches</span>
+            </div>
+            <IssueNode node={SP.issueTree} depth={0}/>
+          </div>
+        )}
+        {tab==="workstreams" && (
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            {SP.workstreams.map(ws=>(
+              <div key={ws.id} style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:16,alignItems:"flex-start"}}>
+                <div style={{width:3,borderRadius:99,background:ws.color,alignSelf:"stretch",flexShrink:0,minHeight:60}}/>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
+                    <span style={{fontSize:14,fontWeight:700,color:"#fff"}}>{ws.name}</span>
+                    <Badge color="slate">{ws.weeks}</Badge>
+                  </div>
+                  <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:12}}>Deliverable: <strong style={{color:"rgba(255,255,255,0.6)"}}>{ws.deliverable}</strong></p>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                    {ws.activities.map((a,i)=>(
+                      <span key={i} style={{fontSize:11,padding:"4px 10px",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.07)"}}>{a}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==="roadmap" && (
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
+            {SP.roadmap.map((p,i)=>(
+              <div key={i} style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:10,background:p.color+"22",fontSize:13,fontWeight:800,color:p.color,marginBottom:4}}>{p.label}</div>
+                <p style={{fontSize:11,color:"rgba(255,255,255,0.35)",marginBottom:16,paddingLeft:2}}>{p.subtitle}</p>
+                <ul style={{listStyle:"none"}}>
+                  {p.items.map((item,j)=>(
+                    <li key={j} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:12,color:"rgba(255,255,255,0.6)",marginBottom:10}}>
+                      <div style={{width:6,height:6,borderRadius:"50%",background:p.color,flexShrink:0,marginTop:5}}/>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {tab==="exec" && (
+          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <div style={{width:28,height:28,borderRadius:8,background:"rgba(16,185,129,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </div>
+              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Executive Summary Draft</h3>
+            </div>
+            <div style={{padding:20,borderRadius:16,background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.15)",marginBottom:16}}>
+              <p style={{color:"rgba(255,255,255,0.8)",fontSize:14,lineHeight:1.9,fontStyle:"italic"}}>"{SP.execSummary}"</p>
+            </div>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>AI-generated first-draft. Not a final deliverable — review before sharing with client.</p>
+          </div>
+        )}
+        {tab==="slide" && (
+          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <div style={{width:28,height:28,borderRadius:8,background:"rgba(245,158,11,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              </div>
+              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Suggested Deck Outline</h3>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {SP.slides.map((s,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",borderRadius:10,background:s.type==="title"?"rgba(245,158,11,0.1)":s.type==="subtitle"?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.015)",border:`1px solid ${s.type==="title"?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.06)"}`}}>
+                  <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:s.type==="title"?"#fcd34d":s.type==="subtitle"?"rgba(255,255,255,0.25)":"rgba(99,102,241,0.7)",width:52,flexShrink:0}}>{s.type==="title"?"Title":s.type==="subtitle"?"Subtitle":`Slide ${i-1}`}</span>
+                  <p style={{fontSize:13,color:s.type==="title"?"#fff":s.type==="subtitle"?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.7)",fontWeight:s.type==="title"?700:400}}>{s.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button onClick={onNext} style={{marginTop:32,width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>
+        Wear-Test Review →
+      </button>
+    </div>
+  );
+}
+
+// ── Screen 4 ─────────────────────────────────────────────────────────────────
+
+function ScreenReview({ brief }) {
+  const [flags, setFlags] = useState(REVIEW_FLAGS);
+  const [exported, setExported] = useState(false);
+  const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status}:f));
+  const pending = flags.filter(f=>f.status==="pending").length;
+  const approved = flags.filter(f=>f.status==="approved").length;
+  const escalated = flags.filter(f=>f.status==="escalated").length;
+
+  const confidence = [
+    { label:"Problem Statement", score:88 },
+    { label:"Issue Tree", score:82 },
+    { label:"Workstream Structure", score:91 },
+    { label:"30/60/90 Roadmap", score:79 },
+    { label:"Executive Summary", score:85 },
+    { label:"Deck Outline", score:90 },
+  ];
+
+  return (
+    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
+      <div style={{marginBottom:32}}>
+        <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700,marginBottom:12}}>Step 04 — Wear-Test Review</p>
+        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>Does the first pair fit?</h1>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Review Cobbler's assumptions and confirm, revise, or escalate before exporting the starter pack.</p>
+      </div>
+
+      {/* Summary bar */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:32}}>
+        {[{label:"Pending Review",val:pending,color:"amber"},{label:"Approved",val:approved,color:"emerald"},{label:"Escalated",val:escalated,color:"rose"}].map(s=>(
+          <div key={s.label} style={{padding:16,borderRadius:14,border:`1px solid ${s.color==="amber"?"rgba(245,158,11,0.2)":s.color==="emerald"?"rgba(16,185,129,0.2)":"rgba(244,63,94,0.2)"}`,background:s.color==="amber"?"rgba(245,158,11,0.05)":s.color==="emerald"?"rgba(16,185,129,0.05)":"rgba(244,63,94,0.05)",textAlign:"center"}}>
+            <div style={{fontSize:28,fontWeight:800,color:s.color==="amber"?"#fcd34d":s.color==="emerald"?"#6ee7b7":"#fda4af",marginBottom:2}}>{s.val}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Flags */}
+      <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:32}}>
+        {flags.map(flag=>(
+          <div key={flag.id} style={{padding:20,borderRadius:16,border:`1px solid ${flag.status==="approved"?"rgba(16,185,129,0.2)":flag.status==="escalated"?"rgba(244,63,94,0.25)":flag.sev==="high"?"rgba(245,158,11,0.2)":flag.sev==="medium"?"rgba(255,255,255,0.09)":"rgba(255,255,255,0.05)"}`,background:flag.status==="approved"?"rgba(16,185,129,0.04)":flag.status==="escalated"?"rgba(244,63,94,0.05)":flag.sev==="high"?"rgba(245,158,11,0.04)":"rgba(255,255,255,0.025)",transition:"all .25s",opacity:flag.status==="approved"?0.7:1}}>
+            <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
+              <div style={{width:8,height:8,borderRadius:"50%",flexShrink:0,marginTop:6,background:flag.sev==="high"?"#f59e0b":flag.sev==="medium"?"#818cf8":"rgba(255,255,255,0.3)"}}/>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
+                  <span style={{fontSize:14,fontWeight:700,color:"#fff"}}>{flag.label}</span>
+                  <Badge color={flag.sev==="high"?"amber":flag.sev==="medium"?"indigo":"slate"}>{flag.sev} priority</Badge>
+                  {flag.status==="approved"&&<Badge color="emerald">Approved</Badge>}
+                  {flag.status==="escalated"&&<Badge color="rose">Escalated</Badge>}
+                </div>
+                <p style={{fontSize:12,color:"rgba(255,255,255,0.5)",lineHeight:1.7}}>{flag.detail}</p>
+              </div>
+              {flag.status==="pending" && (
+                <div style={{display:"flex",gap:8,flexShrink:0}}>
+                  <button onClick={()=>update(flag.id,"approved")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.12)",color:"#6ee7b7",transition:"all .15s"}}>Approve</button>
+                  <button onClick={()=>update(flag.id,"escalated")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.25)",background:"rgba(244,63,94,0.08)",color:"#fda4af",transition:"all .15s"}}>Escalate</button>
+                </div>
+              )}
+              {flag.status!=="pending" && (
+                <button onClick={()=>update(flag.id,"pending")} style={{fontSize:11,color:"rgba(255,255,255,0.2)",background:"none",border:"none",cursor:"pointer",flexShrink:0}}>undo</button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Confidence */}
+      <div style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",marginBottom:32}}>
+        <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:20}}>Pack Confidence Indicators</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"12px 32px"}}>
+          {confidence.map(c=>(
+            <div key={c.label}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:6}}>
+                <span style={{color:"rgba(255,255,255,0.5)"}}>{c.label}</span>
+                <span style={{fontWeight:700,color:c.score>=85?"#10b981":c.score>=75?"#f59e0b":"#f43f5e"}}>{c.score}%</span>
+              </div>
+              <FitBar value={c.score} color={c.score>=85?"#10b981":c.score>=75?"#f59e0b":"#f43f5e"}/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {!exported ? (
+        <div style={{padding:32,borderRadius:20,border:"1px dashed rgba(99,102,241,0.3)",background:"rgba(99,102,241,0.04)",textAlign:"center"}}>
+          <div style={{width:52,height:52,borderRadius:"50%",background:"rgba(99,102,241,0.15)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <p style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:4}}>Ready to export your starter pack?</p>
+          <p style={{fontSize:13,color:"rgba(255,255,255,0.35)",marginBottom:24}}>{pending===0?"All flags resolved. Your pack is ready for export.":`${pending} flag${pending!==1?"s":""} still pending. You can export anyway or resolve them first.`}</p>
+          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+            <button onClick={()=>setExported(true)} style={{padding:"11px 28px",borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>Export Starter Pack</button>
+            <button style={{padding:"11px 28px",borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.6)",transition:"all .2s"}}>Send to Senior Review</button>
+          </div>
+        </div>
+      ) : (
+        <div style={{padding:32,borderRadius:20,border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.05)",textAlign:"center"}}>
+          <div style={{width:52,height:52,borderRadius:"50%",background:"rgba(16,185,129,0.2)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <p style={{fontSize:15,fontWeight:800,color:"#fff",marginBottom:4}}>Starter pack exported.</p>
+          <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:20}}>{brief.clientName||"Engagement"} starter pack is ready in your project workspace.</p>
+          <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+            {["Problem Statement.docx","Issue Tree.pdf","Roadmap.pptx"].map(f=>(
+              <span key={f} style={{fontSize:11,padding:"6px 12px",borderRadius:8,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.4)"}}>{f}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Shell ─────────────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { id:1, label:"Brief Intake", sub:"Measure the client" },
+  { id:2, label:"Knowledge Activation", sub:"Pattern matching" },
+  { id:3, label:"Starter Pack", sub:"First pair drafted" },
+  { id:4, label:"Wear-Test Review", sub:"Confirm the fit" },
+];
+
+function App() {
+  const [step, setStep] = useState(1);
+  const [brief, setBrief] = useState({});
+
+  return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#090a13 0%,#0e0f1f 50%,#0a0b18 100%)",position:"relative",overflow:"hidden"}}>
+      {/* Ambient glow */}
+      <div style={{position:"fixed",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse 70% 45% at 50% 0%,rgba(99,102,241,0.09) 0%,transparent 70%)"}}/>
+
+      {/* Header */}
+      <header style={{position:"relative",zIndex:10,borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(0,0,0,0.2)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
+        <div style={{maxWidth:980,margin:"0 auto",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
+          {/* Brand */}
+          <div style={{display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 16px rgba(99,102,241,0.35)"}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+              <span style={{fontSize:14,fontWeight:800,color:"#fff",letterSpacing:"-0.02em"}}>CGS Cobbler</span>
+              <span style={{fontSize:11,color:"rgba(255,255,255,0.2)",marginLeft:10,fontStyle:"italic",display:"none"}}>The first pair of shoes CGS builds for itself.</span>
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div style={{display:"flex",alignItems:"center",gap:8,flex:1,justifyContent:"center",maxWidth:600}}>
+            {STEPS.map((s,i)=>(
+              <React.Fragment key={s.id}>
+                <button onClick={()=>s.id<=step&&setStep(s.id)} disabled={s.id>step} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:s.id<=step?"pointer":"default",padding:0}}>
+                  <StepDot num={s.id} active={step===s.id} done={step>s.id}/>
+                  <span style={{fontSize:12,fontWeight:600,color:step===s.id?"#fff":step>s.id?"rgba(255,255,255,0.35)":"rgba(255,255,255,0.18)",whiteSpace:"nowrap",display:window.innerWidth<600?"none":"block"}}>{s.label}</span>
+                </button>
+                {i<STEPS.length-1 && <div style={{width:32,height:1,background:step>s.id?"rgba(99,102,241,0.4)":"rgba(255,255,255,0.08)",flexShrink:0,display:window.innerWidth<600?"none":"block"}}/>}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* User */}
+          <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+            <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(99,102,241,0.25)",border:"1px solid rgba(99,102,241,0.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#a5b4fc"}}>CG</div>
+            <div>
+              <p style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.65)",lineHeight:1}}>Consultant</p>
+              <p style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>CGS Advisors</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Progress bar */}
+      <div style={{height:2,background:"rgba(255,255,255,0.04)",position:"relative",zIndex:10}}>
+        <div style={{height:"100%",background:"linear-gradient(90deg,#6366f1,#8b5cf6)",transition:"width .5s ease",width:`${((step-1)/(STEPS.length-1))*100}%`}}/>
+      </div>
+
+      {/* Main */}
+      <main style={{position:"relative",zIndex:5}}>
+        {step===1 && <ScreenIntake brief={brief} setBrief={setBrief} onNext={()=>setStep(2)}/>}
+        {step===2 && <ScreenKnowledge brief={brief} onNext={()=>setStep(3)}/>}
+        {step===3 && <ScreenStarterPack brief={brief} onNext={()=>setStep(4)}/>}
+        {step===4 && <ScreenReview brief={brief}/>}
+      </main>
+
+      {/* Footer */}
+      <footer style={{borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:32,position:"relative",zIndex:5}}>
+        <div style={{maxWidth:980,margin:"0 auto",padding:"14px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.18)"}}>CGS Cobbler · Internal Use Only · CGS Advisors</span>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.12)",fontStyle:"italic"}}>
+            {step===1?"Start crafting":step===2?"Knowledge patterns activated":step===3?"First pair drafted":"Measure the fit"}
+          </span>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+</body>
+</html>
