@@ -10,4 +10,5 @@ It helps consultants turn a new client brief into an engagement starter pack by 
 
 ## Live Demo
 
-Deployed on Vercel.
+- Vercel: https://vercel-cgs-cobbler.vercel.app
+- Production deployment: https://vercel-cgs-cobbler-6wigwqrsy-pzx0508s-projects.vercel.app
