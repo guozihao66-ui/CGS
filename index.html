@@ -8,1006 +8,791 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #090a13; color: #fff; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
-  textarea, input { font-family: inherit; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes spin-rev { to { transform: rotate(-360deg); } }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  @keyframes ping { 75%,100%{transform:scale(1.6);opacity:0} }
-  @keyframes grow { from{width:0%} to{width:100%} }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-  .spin { animation: spin 4s linear infinite; }
-  .spin-rev { animation: spin-rev 3s linear infinite; }
-  .pulse { animation: pulse 2s ease-in-out infinite; }
-  .ping { animation: ping 1.5s cubic-bezier(0,0,.2,1) infinite; }
-  .grow-bar { animation: grow 1.8s ease-in-out forwards; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0d16;
+    --bg2: #121726;
+    --panel: rgba(18, 23, 38, 0.92);
+    --panel-2: rgba(16, 20, 34, 0.88);
+    --line: rgba(255,255,255,0.08);
+    --soft: rgba(255,255,255,0.04);
+    --text: #edf2ff;
+    --muted: #9aa4c7;
+    --indigo: #7488ff;
+    --violet: #a78bfa;
+    --emerald: #34d399;
+    --amber: #f59e0b;
+    --rose: #fb7185;
+    --cyan: #38bdf8;
+  }
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(116,136,255,0.18), transparent 24%),
+      radial-gradient(circle at top right, rgba(167,139,250,0.10), transparent 28%),
+      linear-gradient(180deg, #090c14 0%, #0a0d16 42%, #090b12 100%);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(116,136,255,0.25); border-radius: 999px; }
+  input, textarea, button, select { font-family: inherit; }
+  .app { max-width: 1480px; margin: 0 auto; padding: 28px 24px 60px; }
+  .hero {
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(16,20,34,0.96), rgba(10,13,22,0.96));
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+    margin-bottom: 18px;
+  }
+  .grid { display: grid; gap: 18px; }
+  .grid-2 { grid-template-columns: 1.35fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 18px;
+    backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  }
+  .card.soft { background: var(--panel-2); }
+  .title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; }
+  .subtitle { color: var(--muted); line-height: 1.55; }
+  .eyebrow { color: #b9c2e4; font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; }
+  .section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  .muted { color: var(--muted); }
+  .row { display: flex; gap: 12px; align-items: center; }
+  .between { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: #dbe5ff;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.indigo { background: rgba(116,136,255,0.14); color: #bec8ff; border-color: rgba(116,136,255,0.30); }
+  .badge.violet { background: rgba(167,139,250,0.14); color: #ddccff; border-color: rgba(167,139,250,0.30); }
+  .badge.emerald { background: rgba(52,211,153,0.14); color: #9ef0cf; border-color: rgba(52,211,153,0.30); }
+  .badge.amber { background: rgba(245,158,11,0.14); color: #ffd78b; border-color: rgba(245,158,11,0.30); }
+  .badge.rose { background: rgba(251,113,133,0.14); color: #ffb2be; border-color: rgba(251,113,133,0.30); }
+  .metric { padding: 14px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); }
+  .metric-value { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+  .metric-label { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .workflow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+  .workflow-step {
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    min-height: 72px;
+  }
+  .workflow-step.active { border-color: rgba(116,136,255,0.45); box-shadow: inset 0 0 0 1px rgba(116,136,255,0.20); }
+  .label-sm { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: #95a3d9; font-weight: 700; }
+  .step-name { font-size: 13px; font-weight: 700; margin-top: 8px; }
+  .step-note { font-size: 12px; line-height: 1.45; margin-top: 6px; color: var(--muted); }
+  .source-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .source-box { border-radius: 18px; border: 1px solid var(--line); background: rgba(255,255,255,0.025); padding: 16px; }
+  .file-list { display: flex; flex-direction: column; gap: 10px; }
+  .file-item { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.025); }
+  .bar { height: 6px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
+  .bar > span { height: 100%; display: block; border-radius: inherit; background: linear-gradient(90deg, var(--indigo), var(--violet)); }
+  textarea, .input, select {
+    width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text); padding: 12px 14px; outline: none;
+  }
+  textarea { min-height: 134px; resize: vertical; }
+  button {
+    border: 0; cursor: pointer; border-radius: 14px; padding: 11px 14px; font-weight: 700;
+    background: linear-gradient(135deg, var(--indigo), #5b6df8); color: white;
+    box-shadow: 0 12px 32px rgba(91,109,248,0.28);
+  }
+  button.secondary { background: rgba(255,255,255,0.04); color: var(--text); box-shadow: none; border: 1px solid var(--line); }
+  button.ghost { background: transparent; color: #cbd5ff; box-shadow: none; border: 1px dashed rgba(116,136,255,0.25); }
+  .pill-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    border-radius: 999px; padding: 8px 12px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: #dbe5ff; font-size: 12px; cursor: pointer;
+  }
+  .pill.active { border-color: rgba(116,136,255,0.45); background: rgba(116,136,255,0.14); }
+  .section-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; margin-top: 18px; }
+  .asset-item, .warning-item, .plan-item, .evidence-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.025);
+    padding: 14px;
+  }
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .small { font-size: 12px; }
+  .tiny { font-size: 11px; }
+  .divider { height: 1px; background: var(--line); margin: 4px 0; }
+  .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+  .highlight { color: #dfe5ff; font-weight: 700; }
+  .danger { color: #ffb2be; }
+  .success { color: #9ef0cf; }
+  .notice { color: #ffd78b; }
+  .footer-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+  @media (max-width: 1180px) {
+    .grid-2, .section-grid, .source-panel { grid-template-columns: 1fr; }
+    .grid-4, .kpi-strip, .three-col, .workflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 760px) {
+    .app { padding: 18px 14px 40px; }
+    .title { font-size: 28px; }
+    .grid-4, .kpi-strip, .two-col, .three-col, .workflow { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 
-const cx = (...args) => args.filter(Boolean).join(" ");
-
-const SAMPLE_BRIEF = {
-  clientName: "Professional Services Standardization",
-  industry: "Professional Services",
-  objective: "Standardize the first 2–4 weeks of project startup without losing senior judgment",
-  challenge: "A mid-sized advisory firm has grown quickly through senior practitioner expertise, but delivery quality now varies widely by team. Methods, frameworks, and client-ready materials exist across many decks and folders, yet new projects still start with too much manual reconstruction. Leadership wants to standardize the first 2–4 weeks of project startup without turning the firm into a rigid template factory. They want a better way to classify opportunities, reuse proven methods, and give junior consultants a clearer starting point while preserving senior judgment in client-facing recommendations.",
-  timeline: "6 weeks",
-  urgency: "High",
-};
-
-const BRIEF_OPTIONS = [
-  {
-    id: "brief-1",
-    name: "Mid-Market Industrial AI Transformation",
-    brief: {
-      clientName: "Mid-Market Industrial AI Transformation",
-      industry: "Industrial Manufacturing",
-      objective: "Explore how AI could improve planning, reporting, and workflow coordination",
-      challenge: "A mid-market industrial manufacturer with operations across North America wants to explore how AI could improve planning, reporting, and workflow coordination. Leadership believes there is strong potential, but teams currently operate with different reporting practices, fragmented data ownership, and inconsistent process discipline. The COO wants a practical transformation path that creates visible business value within 6 months without launching a large enterprise-wide overhaul. The client is looking for an external advisor to help clarify where to start, what capabilities are missing, and how to sequence the first wave of work.",
-      timeline: "6 months",
-      urgency: "High",
-    }
-  },
-  {
-    id: "brief-2",
-    name: "Professional Services Delivery Standardization",
-    brief: {
-      clientName: "Professional Services Delivery Standardization",
-      industry: "Professional Services",
-      objective: "Improve consistency, reduce startup time, and create more reusable delivery components",
-      challenge: "A growing professional services firm has strong senior expertise, but project delivery varies significantly across teams. New engagements often start slowly because consultants search for prior materials, rebuild workplans, and adapt deliverables differently depending on who leads the work. Leadership wants to improve consistency, reduce startup time, and create more reusable delivery components without turning the business into a rigid template-driven model. The client is asking for a practical way to standardize how work begins, how methods are selected, and how quality is protected.",
-      timeline: "8 weeks",
-      urgency: "High",
-    }
-  },
-  {
-    id: "brief-3",
-    name: "Enterprise Transformation Execution Stall",
-    brief: {
-      clientName: "Enterprise Transformation Execution Stall",
-      industry: "Enterprise Transformation",
-      objective: "Diagnose the sources of inertia and recommend a realistic first-wave path",
-      challenge: "A large enterprise has announced an ambitious transformation agenda focused on becoming more digital, more integrated, and more agile. However, progress has been slower than expected. Leaders across functions support the idea of change, but there is low clarity on which initiatives matter most, where accountability should sit, and what should happen first. The executive team is seeking an advisor to help diagnose the sources of inertia, focus the agenda, and recommend a realistic first-wave path that can build momentum.",
-      timeline: "10 weeks",
-      urgency: "Critical",
-    }
-  },
-  {
-    id: "brief-4",
-    name: "Professional Services Standardization",
-    brief: {
-      clientName: "Professional Services Standardization",
-      industry: "Professional Services",
-      objective: "Standardize the first 2–4 weeks of project startup without losing senior judgment",
-      challenge: "A mid-sized advisory firm has grown quickly through senior practitioner expertise, but delivery quality now varies widely by team. Methods, frameworks, and client-ready materials exist across many decks and folders, yet new projects still start with too much manual reconstruction. Leadership wants to standardize the first 2–4 weeks of project startup without turning the firm into a rigid template factory. They want a better way to classify opportunities, reuse proven methods, and give junior consultants a clearer starting point while preserving senior judgment in client-facing recommendations.",
-      timeline: "6 weeks",
-      urgency: "High",
-    }
-  },
-  {
-    id: "brief-5",
-    name: "Stalled Enterprise Transformation",
-    brief: {
-      clientName: "Stalled Enterprise Transformation",
-      industry: "Enterprise",
-      objective: "Identify where momentum is breaking down and what sponsorship model is needed",
-      challenge: "A North American enterprise has declared transformation a top strategic priority, but execution has stalled for nearly a year. The CEO wants faster progress, operations wants process discipline first, technology wants better data foundations, and business leaders want immediate quick wins. There is no single agreed first-wave roadmap, and governance meetings often end without decisions. The client is asking for a practical diagnostic that identifies where momentum is breaking down, what can be sequenced first, and what sponsorship model is needed to move beyond debate into execution.",
-      timeline: "12 weeks",
-      urgency: "Critical",
-    }
-  }
-];
-
-const KR = {
+const FIRM_LIBRARY = {
+  sourceType: 'Google Drive Shared Drive',
+  driveName: 'CGS Firm Library',
+  lastIndexed: '12 Apr 2026, 18:08 EDT',
+  filesLoaded: 28,
+  fileTypes: ['Framework deck', 'Template doc', 'Governance memo', 'Archetype note', 'QA checklist'],
   frameworks: [
-    { id:"f1", name:"Transformation Diagnostic Framework", fit:96, desc:"Provide a structured approach for understanding transformation problems, root causes, and first-mile priorities.", uses:22, tag:"Flagship" },
-    { id:"f2", name:"Operating Model Friction Map", fit:93, desc:"Diagnose where roles, handoffs, process ownership, and delivery friction slow consistent execution.", uses:17, tag:"Core" },
-    { id:"f3", name:"Use Case Prioritization Matrix", fit:87, desc:"Prioritize which reusable methods or startup activities should be standardized first based on value and feasibility.", uses:19, tag:"Method" },
+    { id: 'fw-1', name: 'Operating Model Friction Map', category: 'Framework', tags: ['handoffs', 'ownership', 'workflow'], summary: 'Diagnose role confusion, handoff friction, and operating bottlenecks in startup and delivery motions.' },
+    { id: 'fw-2', name: 'Transformation Diagnostic Framework', category: 'Framework', tags: ['diagnostic', 'sequencing', 'momentum'], summary: 'Clarify root causes, sequence a realistic first wave, and avoid broad unfocused transformation scope.' },
+    { id: 'fw-3', name: 'Use Case Prioritization Matrix', category: 'Framework', tags: ['ai', 'value', 'feasibility'], summary: 'Score use cases by business value, feasibility, dependencies, and sponsor readiness.' },
+    { id: 'fw-4', name: 'Stakeholder Alignment Map', category: 'Framework', tags: ['sponsor', 'stakeholder', 'decision-rights'], summary: 'Surface sponsor ambiguity, decision rights gaps, and stakeholder coverage risks.' },
   ],
-  engagements: [
-    { id:"e1", client:"Professional Services Standardization Archetype", year:2026, sector:"Professional Services", outcome:"Recommended a reusable startup model for consulting delivery with stronger quality control and IP reuse.", sim:95 },
-    { id:"e2", client:"Operating Model Redesign Archetype", year:2026, sector:"Operating Model", outcome:"Identified inconsistent delivery roles, fragmented ownership, and startup inefficiencies across teams.", sim:89 },
-    { id:"e3", client:"Sponsor Misalignment Archetype", year:2026, sector:"Transformation Governance", outcome:"Flagged leadership alignment and governance issues that could slow standardization efforts.", sim:76 },
-  ],
-  hypotheses: [
-    { id:"h1", text:"Delivery quality variation is driven less by lack of expertise and more by inconsistent startup structure.", conf:"High" },
-    { id:"h2", text:"Reusable IP exists, but it is trapped across decks, folders, and informal team habits.", conf:"High" },
-    { id:"h3", text:"Junior consultants lack a consistent starting point, increasing reconstruction work in the first 2–4 weeks.", conf:"High" },
-    { id:"h4", text:"Leadership wants more standardization, but only if senior judgment remains protected in client-facing recommendations.", conf:"Medium" },
+  archetypes: [
+    { id: 'ar-1', name: 'Professional Services Standardization Archetype', tags: ['templates', 'reusability', 'delivery-consistency'], summary: 'Best fit when reusable consulting IP exists but project startup still depends on manual reconstruction.' },
+    { id: 'ar-2', name: 'Industrial AI Enablement Archetype', tags: ['ai', 'readiness', 'data-governance'], summary: 'Best fit when AI ambition exists but readiness, data ownership, and pilot sequencing are uneven.' },
+    { id: 'ar-3', name: 'Transformation Inertia Removal Archetype', tags: ['governance', 'sponsorship', 'momentum'], summary: 'Best fit when transformation intent is clear but execution stalls due to sponsor misalignment and overloaded scope.' },
   ],
   templates: [
-    { id:"t1", name:"Engagement Starter Kit Template", type:"DOCX", pages:7 },
-    { id:"t2", name:"Diagnostic Workplan Template", type:"DOCX", pages:6 },
-    { id:"t3", name:"Slide Storyline Skeleton Template", type:"PPTX", pages:10 },
-    { id:"t4", name:"Executive Readout Template", type:"PPTX", pages:8 },
+    { id: 'tp-1', name: 'Engagement Starter Kit Template', type: 'DOCX', tags: ['kickoff', 'starter-kit'] },
+    { id: 'tp-2', name: 'Diagnostic Workplan Template', type: 'DOCX', tags: ['workplan', 'weeks-2-4'] },
+    { id: 'tp-3', name: 'Interview Guide Template', type: 'DOCX', tags: ['stakeholder', 'interviews'] },
+    { id: 'tp-4', name: 'Storyline Skeleton Template', type: 'PPTX', tags: ['storyline', 'exec-readout'] },
+    { id: 'tp-5', name: 'Executive Steering Memo Template', type: 'DOCX', tags: ['governance', 'sponsor'] },
+    { id: 'tp-6', name: 'Use Case Scorecard Template', type: 'XLSX', tags: ['ai', 'prioritization'] },
   ],
+  governanceRules: [
+    { id: 'gr-1', name: 'Evidence Sufficiency Rule', trigger: 'Quantified claims without baseline metrics', severity: 'high' },
+    { id: 'gr-2', name: 'Stakeholder Coverage Rule', trigger: 'No sponsor or stakeholder map in client materials', severity: 'high' },
+    { id: 'gr-3', name: 'Human Review Gate Policy', trigger: 'Advisory recommendations or storyline claims', severity: 'high' },
+    { id: 'gr-4', name: 'Hypothesis Language Rule', trigger: 'Claims framed as conclusions without evidence', severity: 'medium' },
+    { id: 'gr-5', name: 'Scope Discipline Rule', trigger: 'First-wave plan expands faster than evidence supports', severity: 'medium' },
+  ]
 };
 
-const SP = {
-  problemStatement: "The firm has strong practitioner expertise, but its early engagement workflow is still too dependent on manual reconstruction. Delivery quality varies by team, reusable methods are scattered across decks and folders, and junior consultants often start projects without a clear structured base. CGS is therefore not solving a shortage of consulting knowledge, it is solving a failure to operationalize its own knowledge consistently. The goal of this engagement is to classify the right startup pattern, activate the most relevant internal assets, and create a repeatable first-mile structure that improves speed and consistency while preserving senior judgment.",
-  issueTree: { label:"How should CGS standardize project startup without over-templating delivery?", children:[
-    { label:"Where does startup friction currently occur?", children:[
-      { label:"How are methods and templates currently stored and reused?" },
-      { label:"Where does manual reconstruction consume the most time?" },
-      { label:"Which roles create or inherit startup ambiguity?" },
-    ]},
-    { label:"What parts of startup can be standardized?", children:[
-      { label:"Which activities are repeatable across engagements?" },
-      { label:"Which templates should be activated first?" },
-      { label:"Where must senior judgment remain human-led?" },
-    ]},
-    { label:"What operating model changes are needed?", children:[
-      { label:"How should delivery ownership be clarified?" },
-      { label:"What governance is needed for reusable IP?" },
-      { label:"How should quality and review gates be embedded?" },
-    ]},
-  ]},
-  workstreams: [
-    { id:"ws1", name:"Startup Friction Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"Transformation Diagnostic Summary", activities:["Review how new engagements are currently launched across 3–5 representative teams","Map where consultants search for prior decks, rebuild workplans, or recreate framing from scratch","Identify variance in startup responsibilities across partners, managers, and junior consultants","Surface first-mile failure points such as unclear scope, weak kickoff structure, and inconsistent asset reuse"] },
-    { id:"ws2", name:"Reusable Asset Classification", weeks:"Weeks 2–3", color:"#8b5cf6", deliverable:"Matched Asset Inventory", activities:["Inventory the most-used startup materials across methods, frameworks, and client-ready templates","Group existing materials by use case, engagement type, and startup moment","Identify which assets are reusable as-is, which need standardization, and which should remain judgment-led","Prioritize the highest-value startup components that can be standardized without over-templating delivery"] },
-    { id:"ws3", name:"Standardized Starter Kit Design", weeks:"Weeks 3–5", color:"#a78bfa", deliverable:"Engagement Starter Kit", activities:["Design a repeatable starter kit structure for the first 2–4 weeks of project startup","Define standard sections such as problem statement, objective, early hypotheses, scope boundaries, stakeholder assumptions, and first-phase workplan","Create a storyline skeleton that helps teams move faster from intake to internal alignment","Embed clear consultant review gates so strategic recommendations still require senior judgment before client use"] },
-    { id:"ws4", name:"Governance and Rollout", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"Phase-Zero Standardization Plan", activities:["Define governance rules for when templates may be reused versus adapted","Apply evidence sufficiency, hypothesis language, and human review rules to generated outputs","Identify one pilot service line or engagement type to test the new startup model","Design rollout guidance, adoption checkpoints, and quality controls before broader internal scale-up"] },
-  ],
-  roadmap: [
-    { label:"30 Days", subtitle:"Diagnose & Classify", color:"#6366f1", items:["Map startup friction across teams and identify the most repeated reconstruction tasks","Inventory the highest-value reusable IP, templates, and startup materials currently spread across decks and folders","Classify the most common engagement archetypes and define where a standard starter kit would create the most leverage","Identify the top variance drivers in early delivery, including unclear ownership, inconsistent workplan design, and weak hypothesis framing"] },
-    { label:"60 Days", subtitle:"Assemble & Pilot", color:"#8b5cf6", items:["Assemble a first-pass starter kit covering problem framing, hypotheses, scope boundaries, workplan, and storyline skeleton","Define explicit human review checkpoints for strategic claims, client-facing recommendations, and weak-evidence statements","Pilot the starter kit with one selected service line or engagement type where startup variance is currently visible","Capture consultant feedback on usability, speed-to-start, quality consistency, and where flexibility is still needed"] },
-    { label:"90 Days", subtitle:"Govern & Scale", color:"#a78bfa", items:["Refine governance rules for reuse so teams know when to standardize versus adapt deliverables","Expand starter kit coverage to additional engagement types and reusable startup moments","Train consultants on the new startup workflow, including how to use matched assets without over-templating client work","Scale the model gradually while preserving senior judgment in client-facing recommendations and high-stakes framing"] },
-  ],
-  execSummary: "CGS should not treat this as a content problem, but as an internal operating model problem. The firm already has deep expertise and reusable materials, yet its first-mile delivery workflow still relies too heavily on manual reconstruction. We recommend a structured startup model built around matched frameworks, archetypes, reusable templates, and explicit human review gates. The immediate goal is not to template all consulting work, but to standardize the first 2–4 weeks of project startup so teams begin with better clarity, stronger consistency, and faster access to proven IP. This creates shorter startup time, higher quality first drafts, and better leverage of senior consulting judgment.",
-  slides: [
-    { type:"title", text:"Slide 1 — Why startup standardization matters now" },
-    { type:"subtitle", text:"Purpose: frame why delivery variance and manual reconstruction are now operating model problems, not isolated team issues." },
-    { type:"section", text:"Key message: CGS already has strong expertise and reusable materials, but early project startup is too dependent on who leads the work." },
-    { type:"section", text:"Recommended visual: current-state startup friction map showing decks, folders, and inconsistent team practices." },
-    { type:"section", text:"Slide 2 — Where project startup breaks today" },
-    { type:"section", text:"Purpose: show the specific points where delivery quality and speed break down in the first 2–4 weeks." },
-    { type:"section", text:"Key message: teams spend too much time searching, reconstructing, and improvising instead of starting from a sharper standard base." },
-    { type:"section", text:"Recommended visual: swimlane or workflow view of handoffs, asset search, and repeated reconstruction tasks." },
-    { type:"section", text:"Slide 3 — Best-fit archetype and matched methods" },
-    { type:"section", text:"Purpose: explain why this case is a professional-services standardization problem and which CGS assets should be activated first." },
-    { type:"section", text:"Key message: the right answer is a reusable first-mile startup model, not full delivery templating." },
-    { type:"section", text:"Recommended visual: archetype match panel with frameworks, templates, and governance rules activated." },
-    { type:"section", text:"Slide 4 — Reusable starter kit structure" },
-    { type:"section", text:"Purpose: show the components of the proposed starter kit and what becomes standardized versus what remains judgment-led." },
-    { type:"section", text:"Key message: problem statement, scope boundaries, hypotheses, workplan, and storyline can be accelerated without removing consultant judgment." },
-    { type:"section", text:"Recommended visual: starter kit anatomy diagram or modular card layout." },
-    { type:"section", text:"Slide 5 — Governance and human review model" },
-    { type:"section", text:"Purpose: demonstrate that the system is disciplined, not just efficient." },
-    { type:"section", text:"Key message: human review, evidence sufficiency, and hypothesis language rules protect quality as reuse increases." },
-    { type:"section", text:"Recommended visual: review-gate flow or escalation ladder." },
-    { type:"section", text:"Slide 6 — 30/60/90 rollout roadmap" },
-    { type:"section", text:"Purpose: show how CGS can pilot, refine, and scale the model internally." },
-    { type:"section", text:"Key message: start narrow, prove value, then scale deliberately across service lines." },
-    { type:"section", text:"Recommended visual: phased roadmap with decision gates and learning loops." },
-    { type:"section", text:"Slide 7 — Pilot next steps" },
-    { type:"section", text:"Purpose: define what CGS should do immediately after alignment on this approach." },
-    { type:"section", text:"Key message: pick one pilot area, activate matched assets, test startup quality, and refine before broader rollout." },
-    { type:"section", text:"Recommended visual: next-step checklist with owner and timing." },
-  ],
-};
-
-const REVIEW_FLAGS = [
-  { id:"rf1", sev:"high", label:"Human review required for generated recommendations", detail:"The Human Review Gate Policy marks any advisory recommendation or client-facing storyline as mandatory human review before use.", status:"pending" },
-  { id:"rf2", sev:"high", label:"Evidence sufficiency must be checked", detail:"Before presenting claims about faster startup, stronger quality, or better reuse, validate that evidence is sufficient rather than implied from anecdotal practice.", status:"pending" },
-  { id:"rf3", sev:"medium", label:"Avoid overclaiming in hypothesis language", detail:"Generated hypotheses should be framed as working assumptions, not as established conclusions, until validated by consultant review.", status:"pending" },
-  { id:"rf4", sev:"medium", label:"Keep standardization focused on the first mile", detail:"The Asset Selection Rule suggests avoiding an overly broad transformation scope. Start with the first 2–4 weeks of engagement startup rather than end-to-end delivery redesign.", status:"pending" },
-  { id:"rf5", sev:"low", label:"Preserve senior judgment in client-facing material", detail:"Reusable templates should accelerate startup, but final client recommendations should still reflect consultant judgment and contextual nuance.", status:"pending" },
+const PRESET_CLIENTS = [
+  {
+    id: 'ps-standardization',
+    label: 'CrestPoint Advisory',
+    folderName: 'CrestPoint / Delivery Standardization',
+    sourceType: 'Google Drive Client Folder',
+    lastRefreshed: '12 Apr 2026, 18:11 EDT',
+    files: [
+      { name: 'Client Brief - delivery startup variation.docx', type: 'Brief', content: 'Professional services firm. Delivery startup varies by team. Consultants rebuild workplans from old decks. Leadership wants reusable startup kits, quality gates, governance, interview guides, and consistency without removing partner judgment. Baseline metrics for startup time are partial. Stakeholder list includes COO and practice leads.' },
+      { name: 'Workflow Notes - kickoff pain points.txt', type: 'Workflow Notes', content: 'Teams search across folders, decks, and templates. Junior consultants lack a clear starting point. Existing methods are reusable but scattered. No single owner for starter kit governance.' },
+      { name: 'Reporting Baseline - startup cycle.xlsx', type: 'Reporting Baseline', content: 'Partial baseline metrics. Startup time ranges from 6 to 16 days by practice. Rework appears high. Quantification still incomplete.' },
+      { name: 'Stakeholder Notes - practice leaders.docx', type: 'Stakeholder Notes', content: 'COO is active sponsor. Practice leads support standardization but want flexibility. Need stronger review gate for client-facing storyline and recommendation language.' },
+    ]
+  },
+  {
+    id: 'industrial-ai',
+    label: 'Northstar Components',
+    folderName: 'Northstar Components / AI Transformation',
+    sourceType: 'Google Drive Client Folder',
+    lastRefreshed: '12 Apr 2026, 18:12 EDT',
+    files: [
+      { name: 'Strategy Memo - AI planning and reporting.docx', type: 'Strategy Memo', content: 'Industrial manufacturer with AI ambition across planning, reporting, workflow coordination. COO needs a practical first wave in 6 months. Data ownership is fragmented and reporting practices are inconsistent.' },
+      { name: 'Ops Workflow Notes - plant coordination.txt', type: 'Workflow Notes', content: 'Workflow handoffs between plants and central planning are inconsistent. Teams manage exceptions manually. Readiness for automation differs by site.' },
+      { name: 'Pilot Ideas - use cases.csv', type: 'Pilot Ideas', content: 'Potential use cases include predictive scheduling, production reporting assistant, maintenance planning support, workflow exception triage. Need feasibility scoring.' },
+      { name: 'Stakeholder Notes - transformation sponsors.docx', type: 'Stakeholder Notes', content: 'COO is sponsor. IT supports the effort. Plant leaders want practical pilots. Baseline value metrics are weak and partially estimated.' },
+    ]
+  },
+  {
+    id: 'enterprise-inertia',
+    label: 'Apex Enterprise Group',
+    folderName: 'Apex Enterprise Group / Transformation Stall',
+    sourceType: 'Google Drive Client Folder',
+    lastRefreshed: '12 Apr 2026, 18:13 EDT',
+    files: [
+      { name: 'Transformation Brief - stalled momentum.docx', type: 'Brief', content: 'Large enterprise transformation has stalled. Executive team wants to become more digital and integrated. Governance meetings end without decisions. Accountability is unclear and the first-wave roadmap is overloaded.' },
+      { name: 'Stakeholder Notes - executive interviews.docx', type: 'Stakeholder Notes', content: 'CEO wants speed. Operations wants process discipline. Technology wants data foundations. Business leaders want quick wins. Sponsor model is unresolved.' },
+      { name: 'Operating Pain Points - governance log.txt', type: 'Operating Pain Points', content: 'Multiple steering forums exist. Decision rights are blurry. Initiatives compete for attention and no one owns sequencing.' },
+      { name: 'Baseline Notes - current KPIs.txt', type: 'Reporting Baseline', content: 'Transformation KPIs exist at a headline level but linkage to first-wave actions is weak. Benefits case is qualitative.' },
+    ]
+  }
 ];
 
-function getScenarioData(brief) {
-  const text = `${brief.clientName||''} ${brief.industry||''} ${brief.objective||''} ${brief.challenge||''}`.toLowerCase();
+const INITIAL_BRIEF = 'A client team wants CGS to assemble a sharper engagement startup package by combining reusable consulting methods with company-specific context from its current folder.';
 
-  if (text.includes('industrial') || text.includes('ai transformation')) {
-    return {
-      KR: {
-        frameworks: [
-          { id:"f1", name:"AI Enablement Readiness Checklist", fit:97, desc:"Assess readiness across data, governance, talent, and operating discipline before scaling AI initiatives.", uses:26, tag:"Flagship" },
-          { id:"f2", name:"Transformation Diagnostic Framework", fit:92, desc:"Diagnose where process inconsistency, workflow friction, and operating gaps are blocking first-wave value creation.", uses:22, tag:"Core" },
-          { id:"f3", name:"Use Case Prioritization Matrix", fit:90, desc:"Sequence AI use cases by feasibility, value potential, and delivery risk.", uses:19, tag:"Method" },
-        ],
-        engagements: [
-          { id:"e1", client:"Enterprise AI Transformation Archetype", year:2026, sector:"AI / Enterprise", outcome:"Matched a large-scale AI transformation pattern involving readiness, prioritization, and governance.", sim:95 },
-          { id:"e2", client:"Reporting and Planning Enablement Archetype", year:2026, sector:"Industrial / Workflow", outcome:"Showed how reporting discipline and workflow coordination shape early AI adoption outcomes.", sim:84 },
-          { id:"e3", client:"Capability Gap Assessment Matrix", year:2026, sector:"Capability Build", outcome:"Highlighted where missing capabilities prevent practical AI execution.", sim:79 },
-        ],
-        hypotheses: [
-          { id:"h1", text:"The organization has AI ambition, but readiness is uneven across data, governance, and workflow coordination.", conf:"High" },
-          { id:"h2", text:"The client needs a practical first wave, not a broad enterprise program, to generate early credibility.", conf:"High" },
-          { id:"h3", text:"Reporting inconsistency and fragmented ownership are limiting the ability to prioritize AI use cases effectively.", conf:"Medium" },
-          { id:"h4", text:"A capability-first sequence will outperform a tool-first rollout in the first 6 months.", conf:"Medium" },
-        ],
-        templates: [
-          { id:"t1", name:"Use Case Scorecard Template", type:"XLSX", pages:7 },
-          { id:"t2", name:"Diagnostic Workplan Template", type:"DOCX", pages:6 },
-          { id:"t3", name:"Executive Readout Template", type:"PPTX", pages:8 },
-          { id:"t4", name:"Phase Zero Charter Template", type:"DOCX", pages:5 },
-        ],
-      },
-      SP: {
-        problemStatement: "The client is not struggling with a lack of AI ambition, but with a lack of disciplined sequencing. Teams have inconsistent reporting practices, fragmented data ownership, and uneven operating discipline, which means AI opportunities cannot yet be prioritized confidently. The immediate challenge is to create a practical first-wave path that delivers visible value within 6 months without triggering a large, low-focus transformation effort.",
-        issueTree: { label:"How should the client launch a practical first wave of AI-enabled operating improvement?", children:[
-          { label:"What is the current level of AI readiness?", children:[
-            { label:"How mature are data ownership and reporting practices?" },
-            { label:"Where does workflow coordination break down today?" },
-            { label:"What governance and talent gaps limit execution?" },
-          ]},
-          { label:"Which AI use cases are worth sequencing first?", children:[
-            { label:"Which use cases create visible value within 6 months?" },
-            { label:"Which depend on capabilities the client does not yet have?" },
-            { label:"How should feasibility and value be balanced?" },
-          ]},
-          { label:"What first-wave transformation path is realistic?", children:[
-            { label:"What capabilities must be built before scaling?" },
-            { label:"What should remain manual versus automated initially?" },
-            { label:"What governance model is needed for wave one?" },
-          ]},
-        ]},
-        workstreams: [
-          { id:"ws1", name:"AI Readiness Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"AI Readiness Snapshot", activities:["Assess data and governance maturity","Map reporting inconsistency","Identify workflow friction","Clarify capability gaps"] },
-          { id:"ws2", name:"Use Case Prioritization", weeks:"Weeks 2–4", color:"#8b5cf6", deliverable:"Prioritized Wave-One Use Cases", activities:["Inventory candidate use cases","Score value vs feasibility","Align executive priorities","Select first-wave path"] },
-          { id:"ws3", name:"Capability Build Plan", weeks:"Weeks 4–5", color:"#a78bfa", deliverable:"Capability Gap Closure Plan", activities:["Define enabling capabilities","Clarify ownership and governance","Identify quick wins","Frame execution constraints"] },
-          { id:"ws4", name:"Phase-Zero Roadmap", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"6-Month First-Wave Roadmap", activities:["Sequence pilots","Define decision gates","Align sponsors","Prepare executive readout"] },
-        ],
-        roadmap: [
-          { label:"30 Days", subtitle:"Diagnose & Focus", color:"#6366f1", items:["Assess AI readiness","Map workflow and reporting friction","Identify high-potential use cases","Align first-wave criteria"] },
-          { label:"60 Days", subtitle:"Prioritize & Prepare", color:"#8b5cf6", items:["Select first-wave use cases","Define enabling capabilities","Assign governance owners","Frame phase-zero plan"] },
-          { label:"90 Days", subtitle:"Launch & Learn", color:"#a78bfa", items:["Start first pilots","Track visible business value","Refine governance model","Prepare scale-up decisions"] },
-        ],
-        execSummary: "The client needs a focused, capability-first AI transformation path rather than a large enterprise program. We recommend starting with readiness diagnostics, use case prioritization, and a tightly scoped first-wave roadmap that creates visible value within 6 months while building the governance and operating discipline required for scale.",
-        slides: [
-          { type:"title", text:"Mid-Market Industrial AI Transformation" },
-          { type:"subtitle", text:"CGS Cobbler — Engagement Kickoff" },
-          { type:"section", text:"1. Why a practical first wave matters now" },
-          { type:"section", text:"2. Current readiness and operating friction" },
-          { type:"section", text:"3. Prioritized AI use cases" },
-          { type:"section", text:"4. Capability build requirements" },
-          { type:"section", text:"5. 6-month execution roadmap" },
-          { type:"section", text:"6. Governance and next decisions" },
-        ],
-      },
-      REVIEW_FLAGS: [
-        { id:"rf1", sev:"high", label:"Validate data readiness assumptions", detail:"Any AI use-case recommendation should be checked against actual data accessibility, ownership, and reporting quality before internal or client-facing use.", status:"pending" },
-        { id:"rf2", sev:"high", label:"Review governance feasibility", detail:"If governance roles are unclear, avoid implying that multiple AI initiatives can run in parallel without sponsor discipline.", status:"pending" },
-        { id:"rf3", sev:"medium", label:"Avoid overclaiming 6-month value", detail:"Early value claims should be framed as directional and hypothesis-based unless backed by clear baseline evidence.", status:"pending" },
-        { id:"rf4", sev:"medium", label:"Preserve first-wave focus", detail:"Do not let the engagement expand into an enterprise-wide redesign before use-case sequencing and readiness are validated.", status:"pending" },
-        { id:"rf5", sev:"low", label:"Confirm pilot selection criteria", detail:"Make sure value and feasibility criteria are explicit before recommending a final first-wave scope.", status:"pending" },
-      ]
-    };
-  }
+const STOPWORDS = new Set(['the','and','for','with','that','this','from','into','their','they','have','will','without','want','wants','where','there','across','into','about','client','current','using','used','only','more','less','than','your','team','teams','week','weeks','file','files']);
 
-  if (text.includes('execution stall') || text.includes('stalled enterprise') || text.includes('stalled') || text.includes('inertia')) {
-    return {
-      KR: {
-        frameworks: [
-          { id:"f1", name:"Transformation Diagnostic Framework", fit:96, desc:"Diagnose where momentum, accountability, and first-mile clarity are breaking down in enterprise transformation.", uses:22, tag:"Flagship" },
-          { id:"f2", name:"Stakeholder Alignment Map", fit:92, desc:"Surface where sponsorship, ownership, and decision-making are misaligned across leaders.", uses:16, tag:"Core" },
-          { id:"f3", name:"Strategic Prioritization Matrix", fit:88, desc:"Help narrow an overloaded agenda into a realistic first-wave plan.", uses:18, tag:"Method" },
-        ],
-        engagements: [
-          { id:"e1", client:"Strategic Transformation / Inertia Removal Archetype", year:2026, sector:"Strategy / Inertia", outcome:"Matched a case where transformation intent existed but execution stalled due to low clarity and weak sequencing.", sim:96 },
-          { id:"e2", client:"Sponsor Misalignment Archetype", year:2026, sector:"Sponsorship", outcome:"Highlighted executive misalignment and governance deadlock as the central drag on progress.", sim:91 },
-          { id:"e3", client:"Operating Model Redesign Archetype", year:2026, sector:"Execution Design", outcome:"Provided a secondary lens on role and accountability redesign.", sim:73 },
-        ],
-        hypotheses: [
-          { id:"h1", text:"Transformation has stalled because leaders agree on ambition but not on sequencing, ownership, or first-wave scope.", conf:"High" },
-          { id:"h2", text:"Governance forums are creating discussion without decision because sponsorship roles remain unresolved.", conf:"High" },
-          { id:"h3", text:"The agenda is too broad, making prioritization and accountability diffuse.", conf:"High" },
-          { id:"h4", text:"Momentum can be restored by shrinking the first-wave plan and clarifying the sponsorship model.", conf:"Medium" },
-        ],
-        templates: [
-          { id:"t1", name:"Executive Steering Memo Template", type:"DOCX", pages:5 },
-          { id:"t2", name:"Executive Readout Template", type:"PPTX", pages:8 },
-          { id:"t3", name:"Phase Zero Charter Template", type:"DOCX", pages:5 },
-          { id:"t4", name:"Diagnostic Workplan Template", type:"DOCX", pages:6 },
-        ],
-      },
-      SP: {
-        problemStatement: "The enterprise does not lack transformation intent, it lacks an executable path. Leaders support change in principle, but they are misaligned on which initiatives matter most, where accountability should sit, and what should happen first. Governance forums are not turning ambition into decision, so momentum has stalled. The immediate need is to diagnose the sources of inertia, shrink the transformation agenda into a realistic first wave, and define a sponsorship model that can move the organization beyond debate into execution.",
-        issueTree: { label:"How should the enterprise move from stalled transformation intent to executable first-wave momentum?", children:[
-          { label:"Where is momentum breaking down?", children:[
-            { label:"Which governance meetings fail to produce decisions?" },
-            { label:"Where is accountability diffuse or unclear?" },
-            { label:"Which initiatives are competing for attention?" },
-          ]},
-          { label:"Why is alignment weak?", children:[
-            { label:"What do different leaders mean by progress?" },
-            { label:"How does sponsorship differ across functions?" },
-            { label:"Which tradeoffs are unresolved?" },
-          ]},
-          { label:"What should happen first?", children:[
-            { label:"Which first-wave priorities create visible momentum?" },
-            { label:"What sequencing will reduce ambiguity?" },
-            { label:"What sponsorship model is needed to sustain execution?" },
-          ]},
-        ]},
-        workstreams: [
-          { id:"ws1", name:"Inertia Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"Transformation Stall Diagnostic", activities:["Map stalled initiatives","Review governance decision flow","Assess accountability ambiguity","Identify momentum blockers"] },
-          { id:"ws2", name:"Alignment and Sponsorship Mapping", weeks:"Weeks 2–4", color:"#8b5cf6", deliverable:"Stakeholder Alignment Map", activities:["Clarify sponsor positions","Map conflicting priorities","Define decision rights","Surface unresolved tradeoffs"] },
-          { id:"ws3", name:"First-Wave Prioritization", weeks:"Weeks 4–5", color:"#a78bfa", deliverable:"Focused First-Wave Agenda", activities:["Narrow initiative set","Sequence practical first actions","Define early momentum markers","Create realistic execution path"] },
-          { id:"ws4", name:"Execution Governance Reset", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"Phase-Zero Charter", activities:["Define sponsorship model","Reset governance cadence","Prepare executive steering memo","Launch new first-wave structure"] },
-        ],
-        roadmap: [
-          { label:"30 Days", subtitle:"Diagnose & Clarify", color:"#6366f1", items:["Identify momentum blockers","Map governance failure points","Assess sponsor alignment","Clarify current-state ambiguity"] },
-          { label:"60 Days", subtitle:"Prioritize & Reset", color:"#8b5cf6", items:["Shrink the initiative agenda","Define first-wave priorities","Reset sponsorship model","Assign decision rights"] },
-          { label:"90 Days", subtitle:"Launch & Stabilize", color:"#a78bfa", items:["Begin focused first-wave execution","Track momentum markers","Run governance reset","Refine accountability model"] },
-        ],
-        execSummary: "The transformation is stalled not because the enterprise lacks ambition, but because it lacks clarity, sequencing, and aligned sponsorship. We recommend a focused first-wave reset built on inertia diagnostics, stakeholder alignment mapping, and a practical sponsorship model that turns governance from discussion into decision.",
-        slides: [
-          { type:"title", text:"Enterprise Transformation Execution Stall" },
-          { type:"subtitle", text:"CGS Cobbler — Engagement Kickoff" },
-          { type:"section", text:"1. Why momentum has stalled" },
-          { type:"section", text:"2. Governance and alignment breakdowns" },
-          { type:"section", text:"3. First-wave prioritization logic" },
-          { type:"section", text:"4. Sponsorship and accountability reset" },
-          { type:"section", text:"5. 90-day momentum roadmap" },
-          { type:"section", text:"6. Next governance decisions" },
-        ],
-      },
-      REVIEW_FLAGS: [
-        { id:"rf1", sev:"high", label:"Validate sponsor attribution", detail:"Do not overstate which leaders are blockers or sponsors until stakeholder evidence is confirmed.", status:"pending" },
-        { id:"rf2", sev:"high", label:"Review governance redesign implications", detail:"Any recommendation affecting sponsorship or accountability requires explicit senior review before circulation.", status:"pending" },
-        { id:"rf3", sev:"medium", label:"Keep first-wave scope realistic", detail:"Avoid a solution that re-expands the stalled agenda instead of narrowing it.", status:"pending" },
-        { id:"rf4", sev:"medium", label:"Frame inertia as diagnostic, not blame", detail:"Generated language should diagnose breakdowns without assigning unsupported blame to individual functions.", status:"pending" },
-        { id:"rf5", sev:"low", label:"Confirm momentum markers", detail:"Any claimed early-win metric should be evidence-based or clearly framed as provisional.", status:"pending" },
-      ]
-    };
-  }
-
-  return { KR, SP, REVIEW_FLAGS };
+function tokenize(text = '') {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter(word => word.length > 2 && !STOPWORDS.has(word));
 }
 
-// ── Shared UI ────────────────────────────────────────────────────────────────
-
-function FitBar({ value, color="#6366f1" }) {
-  return (
-    <div style={{height:3,width:"100%",borderRadius:99,background:"rgba(255,255,255,0.07)",overflow:"hidden"}}>
-      <div style={{height:"100%",width:`${value}%`,background:color,borderRadius:99,transition:"width .7s ease"}} />
-    </div>
-  );
+function sentenceChunks(text = '') {
+  return text.split(/[\n\.\!\?]+/).map(s => s.trim()).filter(Boolean);
 }
 
-function Badge({ children, color="indigo" }) {
-  const styles = {
-    indigo:{background:"rgba(99,102,241,0.15)",color:"#a5b4fc",border:"1px solid rgba(99,102,241,0.25)"},
-    violet:{background:"rgba(139,92,246,0.15)",color:"#c4b5fd",border:"1px solid rgba(139,92,246,0.25)"},
-    amber:{background:"rgba(245,158,11,0.15)",color:"#fcd34d",border:"1px solid rgba(245,158,11,0.25)"},
-    emerald:{background:"rgba(16,185,129,0.15)",color:"#6ee7b7",border:"1px solid rgba(16,185,129,0.25)"},
-    rose:{background:"rgba(244,63,94,0.15)",color:"#fda4af",border:"1px solid rgba(244,63,94,0.25)"},
-    slate:{background:"rgba(100,116,139,0.15)",color:"#94a3b8",border:"1px solid rgba(100,116,139,0.25)"},
-  };
-  return (
-    <span style={{...styles[color]||styles.indigo,display:"inline-flex",alignItems:"center",padding:"2px 8px",borderRadius:5,fontSize:11,fontWeight:600,letterSpacing:"0.01em"}}>
-      {children}
-    </span>
-  );
+function inferFileType(name = '') {
+  const n = name.toLowerCase();
+  if (n.includes('brief')) return 'Brief';
+  if (n.includes('memo')) return 'Strategy Memo';
+  if (n.includes('stakeholder')) return 'Stakeholder Notes';
+  if (n.includes('baseline') || n.includes('report')) return 'Reporting Baseline';
+  if (n.includes('workflow')) return 'Workflow Notes';
+  if (n.includes('pain')) return 'Operating Pain Points';
+  if (n.includes('pilot')) return 'Pilot Ideas';
+  return 'Uploaded Document';
 }
 
-function CheckBox({ checked, color="#6366f1" }) {
-  return (
-    <div style={{width:16,height:16,borderRadius:4,border:`1px solid ${checked?color:"rgba(255,255,255,0.2)"}`,background:checked?color:"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .2s"}}>
-      {checked && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
-    </div>
-  );
-}
-
-function StepDot({ num, active, done }) {
-  const bg = done ? "#6366f1" : active ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.05)";
-  const border = done ? "#6366f1" : active ? "#818cf8" : "rgba(255,255,255,0.1)";
-  const col = done || active ? (done ? "#fff" : "#a5b4fc") : "rgba(255,255,255,0.25)";
-  return (
-    <div style={{width:32,height:32,borderRadius:"50%",background:bg,border:`1px solid ${border}`,display:"flex",alignItems:"center",justifyContent:"center",color:col,fontSize:13,fontWeight:700,transition:"all .3s",flexShrink:0}}>
-      {done ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg> : num}
-    </div>
-  );
-}
-
-function IssueNode({ node, depth=0 }) {
-  const [open, setOpen] = useState(depth < 1);
-  const has = node.children && node.children.length > 0;
-  const bg = depth===0 ? "rgba(99,102,241,0.12)" : depth===1 ? "rgba(255,255,255,0.04)" : "transparent";
-  const border = depth===0 ? "rgba(99,102,241,0.25)" : depth===1 ? "rgba(255,255,255,0.07)" : "transparent";
-  const col = depth===0 ? "#e0e7ff" : depth===1 ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.45)";
-  return (
-    <div style={{marginLeft: depth>0 ? 20 : 0, position:"relative"}}>
-      {depth>0 && <div style={{position:"absolute",left:-16,top:0,width:1,height:20,background:"rgba(99,102,241,0.2)"}}/>}
-      {depth>0 && <div style={{position:"absolute",left:-16,top:16,width:16,height:1,background:"rgba(99,102,241,0.2)"}}/>}
-      <div onClick={()=>has&&setOpen(!open)} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"8px 12px",borderRadius:10,marginBottom:4,background:bg,border:`1px solid ${border}`,color:col,fontSize:depth===0?13:depth===1?12:11,fontWeight:depth===0?600:400,cursor:has?"pointer":"default",transition:"all .15s"}}>
-        {has && <svg style={{width:12,height:12,marginTop:1,flexShrink:0,transition:"transform .2s",transform:open?"rotate(90deg)":"none",color:"#818cf8"}} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>}
-        {!has && <div style={{width:6,height:6,borderRadius:"50%",background:"rgba(99,102,241,0.5)",marginTop:5,flexShrink:0}}/>}
-        <span>{node.label}</span>
-      </div>
-      {open && has && node.children.map((c,i)=><IssueNode key={i} node={c} depth={depth+1}/>)}
-    </div>
-  );
-}
-
-// ── Screen 1 ─────────────────────────────────────────────────────────────────
-
-function ScreenIntake({ brief, setBrief, onNext }) {
-  const [focused, setFocused] = useState(null);
-  const [selectedBrief, setSelectedBrief] = useState("");
-  const fields = [
-    { key:"clientName", label:"Client Name", placeholder:"e.g. Northstar Industrial Distribution", type:"input" },
-    { key:"industry", label:"Industry", placeholder:"e.g. Industrial Distribution, Healthcare, Financial Services", type:"input" },
-    { key:"objective", label:"Project Objective", placeholder:"What is the primary goal of this engagement?", type:"textarea" },
-    { key:"challenge", label:"Core Challenge", placeholder:"What problem is the client trying to solve?", type:"textarea" },
-    { key:"timeline", label:"Engagement Timeline", placeholder:"e.g. 8 weeks, 3 months", type:"input" },
-  ];
-  const allFilled = fields.every(f => brief[f.key]?.trim());
-
-  const inputStyle = (key) => ({
-    width:"100%",background: focused===key?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",
-    border: `1px solid ${focused===key?"rgba(99,102,241,0.6)":"rgba(255,255,255,0.1)"}`,
-    borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,
-    outline:"none",resize:"none",fontFamily:"inherit",transition:"all .2s",
-    boxShadow: focused===key ? "0 0 0 3px rgba(99,102,241,0.12)" : "none"
+function topKeywords(files) {
+  const counts = {};
+  files.forEach(file => {
+    tokenize(`${file.name} ${file.content}`).forEach(word => counts[word] = (counts[word] || 0) + 1);
   });
-
-  return (
-    <div className="fade-in" style={{maxWidth:640,margin:"0 auto",padding:"48px 24px"}}>
-      <div style={{marginBottom:40}}>
-        <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700,marginBottom:12}}>Step 01 — Brief Intake</p>
-        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:12,lineHeight:1.2}}>Describe the engagement.</h1>
-        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15,lineHeight:1.7}}>Tell Cobbler about your new client. The more precise your brief, the sharper the knowledge activation.</p>
-      </div>
-
-      <div style={{marginBottom:20}}>
-        <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Select Demo Company</label>
-        <select
-          value={selectedBrief}
-          onChange={e => {
-            const value = e.target.value;
-            setSelectedBrief(value);
-            const found = BRIEF_OPTIONS.find(b => b.id === value);
-            if (found) setBrief(found.brief);
-          }}
-          style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,outline:"none",transition:"all .2s"}}
-        >
-          <option value="" style={{background:"#111"}}>Choose one of the 5 database companies</option>
-          {BRIEF_OPTIONS.map(option => (
-            <option key={option.id} value={option.id} style={{background:"#111"}}>{option.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <div style={{display:"flex",flexDirection:"column",gap:20}}>
-        {fields.map(f => (
-          <div key={f.key}>
-            <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>{f.label}</label>
-            {f.type==="textarea"
-              ? <textarea rows={3} style={inputStyle(f.key)} placeholder={f.placeholder} value={brief[f.key]||""} onChange={e=>setBrief({...brief,[f.key]:e.target.value})} onFocus={()=>setFocused(f.key)} onBlur={()=>setFocused(null)} />
-              : <input type="text" style={inputStyle(f.key)} placeholder={f.placeholder} value={brief[f.key]||""} onChange={e=>setBrief({...brief,[f.key]:e.target.value})} onFocus={()=>setFocused(f.key)} onBlur={()=>setFocused(null)} />
-            }
-          </div>
-        ))}
-      </div>
-
-      <div style={{marginTop:20}}>
-        <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Urgency</label>
-        <div style={{display:"flex",gap:8}}>
-          {["Standard","High","Critical"].map(u=>{
-            const sel = brief.urgency===u;
-            const c = u==="Critical"?"rgba(244,63,94,":"u"==="High"?"rgba(245,158,11,":"rgba(99,102,241,";
-            const col = u==="Critical"?"#fda4af":u==="High"?"#fcd34d":"#a5b4fc";
-            return (
-              <button key={u} onClick={()=>setBrief({...brief,urgency:u})} style={{flex:1,padding:"10px 0",borderRadius:12,fontSize:13,fontWeight:600,cursor:"pointer",transition:"all .2s",border:`1px solid ${sel?(u==="Critical"?"rgba(244,63,94,0.5)":u==="High"?"rgba(245,158,11,0.5)":"rgba(99,102,241,0.5)"):"rgba(255,255,255,0.1)"}`,background:sel?(u==="Critical"?"rgba(244,63,94,0.15)":u==="High"?"rgba(245,158,11,0.15)":"rgba(99,102,241,0.15)"):"rgba(255,255,255,0.03)",color:sel?col:"rgba(255,255,255,0.35)"}}>
-                {u}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <button onClick={onNext} disabled={!allFilled} style={{marginTop:32,width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:allFilled?"pointer":"not-allowed",transition:"all .2s",border:"none",background:allFilled?"#6366f1":"rgba(255,255,255,0.05)",color:allFilled?"#fff":"rgba(255,255,255,0.2)",boxShadow:allFilled?"0 8px 24px rgba(99,102,241,0.3)":"none"}}>
-        Activate Knowledge Base →
-      </button>
-    </div>
-  );
+  return Object.entries(counts)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([word]) => word);
 }
 
-// ── Screen 2 ─────────────────────────────────────────────────────────────────
+function classifyContext(files, briefText) {
+  const text = `${briefText} ${files.map(f => `${f.name} ${f.content}`).join(' ')}`.toLowerCase();
+  const score = {
+    standardization: 0,
+    ai: 0,
+    inertia: 0,
+  };
 
-function ScreenKnowledge({ brief, onNext }) {
-  const [ready, setReady] = useState(false);
-  const data = getScenarioData(brief);
-  const [sel, setSel] = useState({f1:true,f2:true,f3:false,e1:true,e2:false});
-  useEffect(()=>{ const t=setTimeout(()=>setReady(true),1900); return()=>clearTimeout(t); },[]);
+  const bump = (bucket, words, value) => words.forEach(word => { if (text.includes(word)) score[bucket] += value; });
 
-  if (!ready) return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"60vh",gap:24}}>
-      <div style={{position:"relative",width:72,height:72}}>
-        <div className="ping" style={{position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.3)"}}/>
-        <div className="pulse" style={{position:"absolute",inset:6,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.5)"}}/>
-        <div style={{position:"absolute",inset:16,borderRadius:"50%",background:"rgba(99,102,241,0.7)"}}/>
-      </div>
-      <div style={{textAlign:"center"}}>
-        <p style={{color:"#fff",fontSize:18,fontWeight:700,marginBottom:4}}>Reading the grain…</p>
-        <p style={{color:"rgba(255,255,255,0.35)",fontSize:14}}>Matching your brief against CGS's knowledge base</p>
-      </div>
-      <div style={{width:240,height:3,borderRadius:99,background:"rgba(255,255,255,0.05)",overflow:"hidden"}}>
-        <div className="grow-bar" style={{height:"100%",width:0,background:"linear-gradient(90deg,#6366f1,#8b5cf6)",borderRadius:99}}/>
-      </div>
-    </div>
-  );
+  bump('standardization', ['professional services', 'template', 'templates', 'standardize', 'standardization', 'starter kit', 'reusable', 'workplan', 'quality gate', 'delivery variation', 'junior consultants'], 3);
+  bump('standardization', ['kickoff', 'manual reconstruction', 'scattered', 'deck', 'governance'], 2);
 
-  const toggle = id => setSel(s=>({...s,[id]:!s[id]}));
-  const activeCount = Object.values(sel).filter(Boolean).length;
+  bump('ai', ['ai', 'artificial intelligence', 'use case', 'pilot', 'planning', 'reporting', 'workflow coordination', 'data ownership', 'automation'], 3);
+  bump('ai', ['manufacturer', 'plant', 'readiness', 'feasibility', 'coo', 'value'], 2);
 
-  return (
-    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
-      <div style={{marginBottom:36}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-          <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700}}>Step 02 — Knowledge Activation</p>
-          <span style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#6ee7b7",fontWeight:600}}>
-            <span className="pulse" style={{width:7,height:7,borderRadius:"50%",background:"#10b981",display:"inline-block"}}/>
-            {activeCount + 4} assets activated
-          </span>
-        </div>
-        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>Knowledge patterns found.</h1>
-        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Cobbler matched <strong style={{color:"rgba(255,255,255,0.7)"}}>{brief.clientName||"your client"}</strong> against CGS's proprietary frameworks, prior engagements, and strategic hypotheses. Confirm what to include.</p>
-      </div>
+  bump('inertia', ['stalled', 'inertia', 'governance meeting', 'decision rights', 'sponsor', 'sponsorship', 'accountability', 'overloaded', 'transformation'], 3);
+  bump('inertia', ['momentum', 'executive', 'quick wins', 'alignment', 'sequencing'], 2);
 
-      {/* Frameworks */}
-      <div style={{marginBottom:32}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em"}}>CGS Frameworks</p>
-          <Badge color="indigo">3 matches</Badge>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-          {data.KR.frameworks.map(fw=>(
-            <div key={fw.id} onClick={()=>toggle(fw.id)} style={{padding:16,borderRadius:16,border:`1px solid ${sel[fw.id]?"rgba(99,102,241,0.45)":"rgba(255,255,255,0.07)"}`,background:sel[fw.id]?"rgba(99,102,241,0.08)":"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all .2s"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                <Badge color={fw.tag==="Flagship"?"indigo":fw.tag==="Core"?"violet":"slate"}>{fw.tag}</Badge>
-                <CheckBox checked={sel[fw.id]} color="#6366f1"/>
-              </div>
-              <p style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:6}}>{fw.name}</p>
-              <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",lineHeight:1.6,marginBottom:12}}>{fw.desc}</p>
-              <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"rgba(255,255,255,0.35)",marginBottom:6}}>
-                <span>Fit score</span><span style={{color:"#818cf8",fontWeight:700}}>{fw.fit}%</span>
-              </div>
-              <FitBar value={fw.fit} color="#6366f1"/>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Prior Engagements */}
-      <div style={{marginBottom:32}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Prior Engagements</p>
-          <Badge color="violet">3 similar cases</Badge>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {data.KR.engagements.map(e=>(
-            <div key={e.id} onClick={()=>toggle(e.id)} style={{display:"flex",alignItems:"center",gap:16,padding:"14px 16px",borderRadius:12,border:`1px solid ${sel[e.id]?"rgba(139,92,246,0.45)":"rgba(255,255,255,0.07)"}`,background:sel[e.id]?"rgba(139,92,246,0.07)":"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all .2s"}}>
-              <CheckBox checked={sel[e.id]} color="#8b5cf6"/>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-                  <span style={{fontSize:13,fontWeight:700,color:"#fff"}}>{e.client}</span>
-                  <Badge color="slate">{e.sector}</Badge>
-                  <span style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>{e.year}</span>
-                </div>
-                <p style={{fontSize:11,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.outcome}</p>
-              </div>
-              <div style={{textAlign:"right",flexShrink:0}}>
-                <div style={{fontSize:15,fontWeight:800,color:"#c4b5fd"}}>{e.sim}%</div>
-                <div style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>similar</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginBottom:32}}>
-        {/* Hypotheses */}
-        <div>
-          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Likely Hypotheses</p>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {data.KR.hypotheses.map((h,i)=>(
-              <div key={h.id} style={{display:"flex",gap:10,padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-                <div style={{width:22,height:22,borderRadius:"50%",background:"rgba(99,102,241,0.2)",color:"#a5b4fc",fontSize:10,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>H{i+1}</div>
-                <div>
-                  <p style={{fontSize:11,color:"rgba(255,255,255,0.65)",lineHeight:1.6,marginBottom:6}}>{h.text}</p>
-                  <Badge color={h.conf==="High"?"indigo":"amber"}>{h.conf} confidence</Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Templates */}
-        <div>
-          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Suggested Templates</p>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {data.KR.templates.map(t=>(
-              <div key={t.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",transition:"all .15s"}}>
-                <div style={{width:32,height:32,borderRadius:8,background:"rgba(255,255,255,0.05)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <p style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.75)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.name}</p>
-                  <p style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>{t.pages} {t.type==="PPTX"?"slides":"pages"}</p>
-                </div>
-                <Badge color={t.type==="PPTX"?"violet":t.type==="XLSX"?"emerald":"slate"}>{t.type}</Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <button onClick={onNext} style={{width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>
-        Generate Starter Pack →
-      </button>
-    </div>
-  );
+  const ranking = Object.entries(score).sort((a,b) => b[1] - a[1]);
+  const primary = ranking[0][0];
+  const confidence = Math.min(97, 62 + ranking[0][1] * 4);
+  return { primary, confidence, score };
 }
 
-// ── Screen 3 ─────────────────────────────────────────────────────────────────
+function buildAnalysis(folder, briefText) {
+  const files = folder.files;
+  const keywords = topKeywords(files);
+  const classification = classifyContext(files, briefText);
+  const hasBaseline = files.some(f => /baseline|metric|kpi|reporting/i.test(`${f.name} ${f.content}`));
+  const hasStakeholders = files.some(f => /stakeholder|sponsor|executive|practice lead|coo|ceo/i.test(`${f.name} ${f.content}`));
+  const hasWeakEvidence = files.some(f => /partial|weak|estimated|qualitative|incomplete/i.test(f.content));
+  const hasGovernanceRisk = files.some(f => /governance|decision rights|owner|ownership|review gate/i.test(f.content));
+  const fileTypes = [...new Set(files.map(f => f.type || inferFileType(f.name)))];
 
-function ScreenStarterPack({ brief, onNext }) {
-  const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState("problem");
-  const data = getScenarioData(brief);
-  useEffect(()=>{ const t=setTimeout(()=>setReady(true),2200); return()=>clearTimeout(t); },[]);
+  const evidence = files.map(file => {
+    const chunks = sentenceChunks(file.content);
+    const matchedSignals = [];
+    chunks.forEach(chunk => {
+      if (/template|standardiz|starter kit|reusable|manual reconstruction|quality gate/i.test(chunk)) matchedSignals.push({ signal: 'standardization signal', text: chunk });
+      if (/ai|use case|readiness|data|planning|reporting|automation/i.test(chunk)) matchedSignals.push({ signal: 'ai transformation signal', text: chunk });
+      if (/stalled|governance|decision|sponsor|accountability|alignment|momentum/i.test(chunk)) matchedSignals.push({ signal: 'transformation inertia signal', text: chunk });
+      if (/partial|weak|qualitative|incomplete|estimated/i.test(chunk)) matchedSignals.push({ signal: 'evidence weakness', text: chunk });
+    });
+    return {
+      name: file.name,
+      type: file.type || inferFileType(file.name),
+      signals: matchedSignals.slice(0, 3),
+      influence: Math.min(98, 55 + matchedSignals.length * 11 + (file.name.toLowerCase().includes('brief') ? 8 : 0)),
+    };
+  }).sort((a,b) => b.influence - a.influence);
 
-  if (!ready) return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"65vh",gap:24}}>
-      <div style={{position:"relative",width:80,height:80}}>
-        <div className="spin" style={{position:"absolute",inset:0,borderRadius:"50%",border:"1px solid rgba(99,102,241,0.2)"}}/>
-        <div className="spin-rev" style={{position:"absolute",inset:8,borderRadius:"50%",border:"1px solid rgba(139,92,246,0.25)"}}/>
-        <div style={{position:"absolute",inset:18,borderRadius:"50%",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        </div>
-      </div>
-      <div style={{textAlign:"center"}}>
-        <p style={{color:"#fff",fontSize:18,fontWeight:700,marginBottom:8}}>Crafting the first pair…</p>
-        {["Synthesizing problem statement","Structuring issue tree","Drafting workstreams","Building roadmap"].map((msg,i)=>(
-          <p key={i} style={{fontSize:13,color:"rgba(255,255,255,0.3)",lineHeight:1.9}}>{msg}</p>
-        ))}
-      </div>
-    </div>
-  );
+  const archetypeMap = {
+    standardization: {
+      projectClass: 'Delivery Standardization / Engagement Startup Design',
+      tags: ['standardization', 'reusable IP', 'startup consistency', 'human-in-the-loop'],
+      frameworks: ['Operating Model Friction Map', 'Transformation Diagnostic Framework'],
+      archetypes: ['Professional Services Standardization Archetype'],
+      templates: ['Engagement Starter Kit Template', 'Diagnostic Workplan Template', 'Interview Guide Template', 'Storyline Skeleton Template'],
+      governance: ['Evidence Sufficiency Rule', 'Human Review Gate Policy', 'Scope Discipline Rule'],
+      recommendation: 'Build a reusable first-mile startup kit with explicit quality gates and archetype-based asset activation.',
+      workplan: ['Week 1: startup friction scan and asset inventory', 'Week 2: classify repeatable startup moments and governance gaps', 'Week 3: draft starter kit, interview guide, and storyline skeleton', 'Week 4: run pilot review with practice leads and tighten evidence thresholds'],
+      interviewGuide: ['COO or service line lead on desired consistency vs flexibility', 'Practice leaders on where startup reconstruction slows teams', 'Managers on workplan reuse and deck search behavior', 'Junior consultants on missing starting materials and review bottlenecks'],
+      storyline: ['Why startup inconsistency is now an operating problem', 'What firm methods already exist and why reuse is uneven', 'Which startup moments can be standardized safely', 'What human review gates protect senior judgment'],
+    },
+    ai: {
+      projectClass: 'AI Enablement / Practical First-Wave Diagnostic',
+      tags: ['ai readiness', 'use case prioritization', 'data ownership', 'wave-one roadmap'],
+      frameworks: ['Use Case Prioritization Matrix', 'Transformation Diagnostic Framework'],
+      archetypes: ['Industrial AI Enablement Archetype'],
+      templates: ['Use Case Scorecard Template', 'Diagnostic Workplan Template', 'Executive Steering Memo Template'],
+      governance: ['Evidence Sufficiency Rule', 'Human Review Gate Policy', 'Scope Discipline Rule'],
+      recommendation: 'Start with readiness and use-case sequencing, not a broad enterprise AI program.',
+      workplan: ['Week 1: readiness diagnostic across data, reporting, and workflow', 'Week 2: map candidate pilots and score value vs feasibility', 'Week 3: align sponsors on first-wave sequence and dependencies', 'Week 4: draft steering memo, pilot scorecard, and review gates'],
+      interviewGuide: ['COO on what visible value is needed within 6 months', 'Ops leaders on planning and reporting pain points', 'IT or data owners on ownership gaps and constraints', 'Plant or process leads on where manual coordination is slowing performance'],
+      storyline: ['Why AI ambition is outpacing readiness today', 'Where workflow and reporting friction block value capture', 'Which pilots create visible value without overreach', 'What governance and capability gaps must be closed first'],
+    },
+    inertia: {
+      projectClass: 'Transformation Inertia / Sponsorship Reset',
+      tags: ['sponsor ambiguity', 'governance reset', 'first-wave prioritization', 'momentum'],
+      frameworks: ['Transformation Diagnostic Framework', 'Stakeholder Alignment Map'],
+      archetypes: ['Transformation Inertia Removal Archetype'],
+      templates: ['Executive Steering Memo Template', 'Diagnostic Workplan Template', 'Storyline Skeleton Template'],
+      governance: ['Stakeholder Coverage Rule', 'Human Review Gate Policy', 'Hypothesis Language Rule'],
+      recommendation: 'Shrink the transformation agenda, clarify sponsor roles, and reset governance around a decision-producing first wave.',
+      workplan: ['Week 1: map stall points, governance loops, and unclear decision rights', 'Week 2: interview sponsors and identify competing first-wave narratives', 'Week 3: define a focused agenda and sponsorship model', 'Week 4: assemble steering memo, risk log, and review-ready storyline'],
+      interviewGuide: ['CEO or top sponsor on what momentum means', 'Operations and technology leads on conflicting priorities', 'Program office on where governance stalls or loops', 'Business leaders on why quick wins are hard to launch today'],
+      storyline: ['Why ambition has not become execution', 'Where alignment and decision rights break down', 'Which first-wave choices reduce inertia fastest', 'How governance must change to sustain momentum'],
+    }
+  };
 
-  const tabs = [
-    { id:"problem", label:"Problem Statement" },
-    { id:"issues", label:"Issue Tree" },
-    { id:"workstreams", label:"Workstreams" },
-    { id:"roadmap", label:"30/60/90 Roadmap" },
-    { id:"exec", label:"Exec Summary" },
-    { id:"slide", label:"First-Slide Outline" },
+  const recipe = archetypeMap[classification.primary];
+
+  const firmFrameworks = FIRM_LIBRARY.frameworks
+    .filter(item => recipe.frameworks.includes(item.name))
+    .map((item, idx) => ({ ...item, fit: Math.min(97, classification.confidence - idx * 4 + (hasGovernanceRisk ? 2 : 0)) }));
+  const matchedArchetypes = FIRM_LIBRARY.archetypes
+    .filter(item => recipe.archetypes.includes(item.name))
+    .map(item => ({ ...item, fit: classification.confidence - 2 }));
+  const matchedTemplates = FIRM_LIBRARY.templates
+    .filter(item => recipe.templates.includes(item.name))
+    .map((item, idx) => ({ ...item, fit: Math.min(95, classification.confidence - 6 - idx * 3) }));
+  const matchedGovernance = FIRM_LIBRARY.governanceRules
+    .filter(item => recipe.governance.includes(item.name))
+    .map((item, idx) => ({ ...item, fit: Math.min(93, 84 - idx * 4 + (hasWeakEvidence ? 6 : 0)) }));
+
+  const warnings = [];
+  if (!hasBaseline) warnings.push({ severity: 'high', label: 'Missing baseline metrics', detail: 'No reporting baseline file was found, so any quantified improvement claim should stay provisional.' });
+  if (!hasStakeholders) warnings.push({ severity: 'high', label: 'Missing stakeholder information', detail: 'No reliable sponsor or stakeholder note is available, which weakens interview planning and governance confidence.' });
+  if (hasWeakEvidence) warnings.push({ severity: 'medium', label: 'Weak evidence in client materials', detail: 'Several client notes use partial or qualitative evidence, so claims should be framed as hypotheses.' });
+  if (classification.primary === 'inertia') warnings.push({ severity: 'high', label: 'Sponsor ambiguity requires review', detail: 'Transformation recommendations should not circulate without confirming who owns first-wave decisions.' });
+  if (classification.primary === 'ai') warnings.push({ severity: 'medium', label: 'Unsupported quantified AI value claims', detail: 'Pilot value estimates appear directional only. Add baseline assumptions before quantifying impact.' });
+  if (classification.primary === 'standardization') warnings.push({ severity: 'medium', label: 'Governance uncertainty around reusable assets', detail: 'Client materials suggest reusable methods exist, but ownership for approving or updating starter-kit assets is still unclear.' });
+  if (warnings.length === 0) warnings.push({ severity: 'low', label: 'Proceed with standard human review', detail: 'No acute evidence gap detected, but client-facing recommendations still require human validation.' });
+
+  const whyDifferent = [
+    `Firm Library assets stayed constant, but ${folder.folderName} introduced keywords such as ${keywords.slice(0, 4).join(', ')} that changed the engagement classification.`,
+    `${evidence[0]?.name || 'Client files'} and ${evidence[1]?.name || 'supporting materials'} supplied the strongest evidence, which shifted framework and template prioritization.`,
+    hasBaseline ? 'A reporting baseline file was present, so starter-kit work can include directional measurement language.' : 'No clear baseline file was found, so review warnings now emphasize quantified-claim risk.',
+    hasStakeholders ? 'Stakeholder notes were available, allowing a more specific interview guide and governance framing.' : 'Stakeholder coverage is weak, so the human review gate is stricter and the interview guide stays more exploratory.',
   ];
 
+  return {
+    classification,
+    projectClass: recipe.projectClass,
+    tags: recipe.tags,
+    recommendation: recipe.recommendation,
+    matched: { frameworks: firmFrameworks, archetypes: matchedArchetypes, templates: matchedTemplates, governance: matchedGovernance },
+    evidence,
+    fileTypes,
+    hasBaseline,
+    hasStakeholders,
+    hasWeakEvidence,
+    whyDifferent,
+    starterKit: {
+      archetypeRecommendation: `${matchedArchetypes[0]?.name || recipe.archetypes[0]} (${classification.confidence}% fit)`,
+      workplan: recipe.workplan,
+      interviewGuide: recipe.interviewGuide,
+      storyline: recipe.storyline,
+      reviewChecklist: [
+        hasBaseline ? 'Baseline evidence reviewed before quantifying claims' : 'Add or request baseline metrics before any quantified benefit claim',
+        hasStakeholders ? 'Sponsor and stakeholder coverage appears adequate for first-pass interviews' : 'Confirm sponsor, stakeholder map, and decision rights before final recommendation',
+        hasWeakEvidence ? 'Frame all impact statements as hypotheses pending validation' : 'Evidence quality supports a sharper first-pass narrative',
+        'Require human review for final client-facing storyline and recommendations',
+      ]
+    },
+    warnings,
+    keywords,
+  };
+}
+
+function useClientFolders() {
+  const [selectedId, setSelectedId] = useState(PRESET_CLIENTS[0].id);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const fileInputRef = useRef(null);
+
+  const selectedPreset = PRESET_CLIENTS.find(client => client.id === selectedId) || PRESET_CLIENTS[0];
+  const currentFolder = useMemo(() => {
+    if (!uploadedFiles.length) return selectedPreset;
+    return {
+      id: 'custom-upload',
+      label: 'Custom Upload',
+      folderName: `Custom Upload / ${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''}`,
+      sourceType: 'Local Upload mapped as Google Drive client folder',
+      lastRefreshed: 'Just now',
+      files: uploadedFiles,
+    };
+  }, [selectedPreset, uploadedFiles]);
+
+  async function onUpload(event) {
+    const files = Array.from(event.target.files || []);
+    const resolved = await Promise.all(files.map(async (file) => ({
+      name: file.name,
+      type: inferFileType(file.name),
+      size: file.size,
+      content: await file.text().catch(() => `${file.name} uploaded`),
+    })));
+    setUploadedFiles(resolved);
+  }
+
+  function clearUploads() {
+    setUploadedFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  return { selectedId, setSelectedId, currentFolder, uploadedFiles, onUpload, clearUploads, fileInputRef };
+}
+
+function Badge({ children, tone = 'indigo' }) {
+  return <span className={`badge ${tone}`}>{children}</span>;
+}
+
+function ProgressBar({ value }) {
+  return <div className="bar"><span style={{ width: `${value}%` }} /></div>;
+}
+
+function SeverityBadge({ severity }) {
+  const map = { high: 'rose', medium: 'amber', low: 'emerald' };
+  return <Badge tone={map[severity] || 'indigo'}>{severity.toUpperCase()}</Badge>;
+}
+
+function AssetList({ title, items, field = 'summary', tone = 'indigo' }) {
   return (
-    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
-      <div style={{marginBottom:32}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-          <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700}}>Step 03 — Starter Pack</p>
-          <Badge color="emerald">First Pair Drafted</Badge>
+    <div className="stack">
+      <div className="between">
+        <div className="section-title">{title}</div>
+        <Badge tone={tone}>{items.length} matched</Badge>
+      </div>
+      {items.map(item => (
+        <div key={item.id || item.name} className="asset-item stack">
+          <div className="between">
+            <div>
+              <div style={{ fontWeight: 700 }}>{item.name}</div>
+              <div className="small muted" style={{ marginTop: 4 }}>{item.category || item.type || item.trigger}</div>
+            </div>
+            <div style={{ minWidth: 100, textAlign: 'right' }}>
+              <div className="small highlight">{item.fit}% fit</div>
+            </div>
+          </div>
+          <ProgressBar value={item.fit || 80} />
+          <div className="small muted">{item[field] || item.summary || item.trigger}</div>
         </div>
-        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>{brief.clientName||"Engagement"} — Starter Pack</h1>
-        <p style={{color:"rgba(255,255,255,0.45)",fontSize:14}}>AI-generated from brief + activated knowledge. Review each section before proceeding to wear-test.</p>
-      </div>
-
-      {/* Tab bar */}
-      <div style={{display:"flex",gap:4,padding:4,background:"rgba(255,255,255,0.04)",borderRadius:14,border:"1px solid rgba(255,255,255,0.07)",marginBottom:24,overflowX:"auto"}}>
-        {tabs.map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{flexShrink:0,padding:"8px 14px",borderRadius:10,fontSize:12,fontWeight:600,cursor:"pointer",transition:"all .2s",border:"none",background:tab===t.id?"#6366f1":"transparent",color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",whiteSpace:"nowrap"}}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="fade-in" key={tab} style={{minHeight:360}}>
-        {tab==="problem" && (
-          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-              <div style={{width:28,height:28,borderRadius:8,background:"rgba(99,102,241,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-              </div>
-              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Draft Problem Statement</h3>
-            </div>
-            <p style={{color:"rgba(255,255,255,0.7)",fontSize:14,lineHeight:1.9,borderLeft:"3px solid rgba(99,102,241,0.4)",paddingLeft:16}}>{data.SP.problemStatement}</p>
-            <p style={{marginTop:16,fontSize:11,color:"rgba(255,255,255,0.25)"}}>Generated from brief synthesis + AI Readiness Framework pattern matching</p>
-          </div>
-        )}
-        {tab==="issues" && (
-          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-              <div style={{width:28,height:28,borderRadius:8,background:"rgba(139,92,246,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
-              </div>
-              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Issue Tree</h3>
-              <span style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>Click to expand branches</span>
-            </div>
-            <IssueNode node={data.SP.issueTree} depth={0}/>
-          </div>
-        )}
-        {tab==="workstreams" && (
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {data.SP.workstreams.map(ws=>(
-              <div key={ws.id} style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",display:"flex",gap:16,alignItems:"flex-start"}}>
-                <div style={{width:3,borderRadius:99,background:ws.color,alignSelf:"stretch",flexShrink:0,minHeight:60}}/>
-                <div style={{flex:1}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4,flexWrap:"wrap"}}>
-                    <span style={{fontSize:14,fontWeight:700,color:"#fff"}}>{ws.name}</span>
-                    <Badge color="slate">{ws.weeks}</Badge>
-                  </div>
-                  <p style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:12}}>Deliverable: <strong style={{color:"rgba(255,255,255,0.6)"}}>{ws.deliverable}</strong></p>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                    {ws.activities.map((a,i)=>(
-                      <span key={i} style={{fontSize:11,padding:"4px 10px",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.07)"}}>{a}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {tab==="roadmap" && (
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
-            {data.SP.roadmap.map((p,i)=>(
-              <div key={i} style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-                <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:10,background:p.color+"22",fontSize:13,fontWeight:800,color:p.color,marginBottom:4}}>{p.label}</div>
-                <p style={{fontSize:11,color:"rgba(255,255,255,0.35)",marginBottom:16,paddingLeft:2}}>{p.subtitle}</p>
-                <ul style={{listStyle:"none"}}>
-                  {p.items.map((item,j)=>(
-                    <li key={j} style={{display:"flex",alignItems:"flex-start",gap:8,fontSize:12,color:"rgba(255,255,255,0.6)",marginBottom:10}}>
-                      <div style={{width:6,height:6,borderRadius:"50%",background:p.color,flexShrink:0,marginTop:5}}/>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-        {tab==="exec" && (
-          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-              <div style={{width:28,height:28,borderRadius:8,background:"rgba(16,185,129,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              </div>
-              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Executive Summary Draft</h3>
-            </div>
-            <div style={{padding:20,borderRadius:16,background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.15)",marginBottom:16}}>
-              <p style={{color:"rgba(255,255,255,0.8)",fontSize:14,lineHeight:1.9,fontStyle:"italic"}}>"{data.SP.execSummary}"</p>
-            </div>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.25)"}}>AI-generated first-draft. Not a final deliverable — review before sharing with client.</p>
-          </div>
-        )}
-        {tab==="slide" && (
-          <div style={{padding:24,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-              <div style={{width:28,height:28,borderRadius:8,background:"rgba(245,158,11,0.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-              </div>
-              <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Suggested Deck Outline</h3>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {data.SP.slides.map((s,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",borderRadius:10,background:s.type==="title"?"rgba(245,158,11,0.1)":s.type==="subtitle"?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.015)",border:`1px solid ${s.type==="title"?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.06)"}`}}>
-                  <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:s.type==="title"?"#fcd34d":s.type==="subtitle"?"rgba(255,255,255,0.25)":"rgba(99,102,241,0.7)",width:52,flexShrink:0}}>{s.type==="title"?"Title":s.type==="subtitle"?"Subtitle":`Slide ${i-1}`}</span>
-                  <p style={{fontSize:13,color:s.type==="title"?"#fff":s.type==="subtitle"?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.7)",fontWeight:s.type==="title"?700:400}}>{s.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <button onClick={onNext} style={{marginTop:32,width:"100%",padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:700,letterSpacing:"0.03em",cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>
-        Wear-Test Review →
-      </button>
+      ))}
     </div>
   );
 }
-
-// ── Screen 4 ─────────────────────────────────────────────────────────────────
-
-function ScreenReview({ brief }) {
-  const data = getScenarioData(brief);
-  const [flags, setFlags] = useState(data.REVIEW_FLAGS);
-  const [exported, setExported] = useState(false);
-  const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status}:f));
-  const pending = flags.filter(f=>f.status==="pending").length;
-  const approved = flags.filter(f=>f.status==="approved").length;
-  const escalated = flags.filter(f=>f.status==="escalated").length;
-
-  const confidence = [
-    { label:"Problem Statement", score:88 },
-    { label:"Issue Tree", score:82 },
-    { label:"Workstream Structure", score:91 },
-    { label:"30/60/90 Roadmap", score:79 },
-    { label:"Executive Summary", score:85 },
-    { label:"Deck Outline", score:90 },
-  ];
-
-  return (
-    <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
-      <div style={{marginBottom:32}}>
-        <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700,marginBottom:12}}>Step 04 — Wear-Test Review</p>
-        <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>Does the first pair fit?</h1>
-        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Review Cobbler's assumptions and confirm, revise, or escalate before exporting the starter pack.</p>
-      </div>
-
-      {/* Summary bar */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:32}}>
-        {[{label:"Pending Review",val:pending,color:"amber"},{label:"Approved",val:approved,color:"emerald"},{label:"Escalated",val:escalated,color:"rose"}].map(s=>(
-          <div key={s.label} style={{padding:16,borderRadius:14,border:`1px solid ${s.color==="amber"?"rgba(245,158,11,0.2)":s.color==="emerald"?"rgba(16,185,129,0.2)":"rgba(244,63,94,0.2)"}`,background:s.color==="amber"?"rgba(245,158,11,0.05)":s.color==="emerald"?"rgba(16,185,129,0.05)":"rgba(244,63,94,0.05)",textAlign:"center"}}>
-            <div style={{fontSize:28,fontWeight:800,color:s.color==="amber"?"#fcd34d":s.color==="emerald"?"#6ee7b7":"#fda4af",marginBottom:2}}>{s.val}</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Flags */}
-      <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:32}}>
-        {flags.map(flag=>(
-          <div key={flag.id} style={{padding:20,borderRadius:16,border:`1px solid ${flag.status==="approved"?"rgba(16,185,129,0.2)":flag.status==="escalated"?"rgba(244,63,94,0.25)":flag.sev==="high"?"rgba(245,158,11,0.2)":flag.sev==="medium"?"rgba(255,255,255,0.09)":"rgba(255,255,255,0.05)"}`,background:flag.status==="approved"?"rgba(16,185,129,0.04)":flag.status==="escalated"?"rgba(244,63,94,0.05)":flag.sev==="high"?"rgba(245,158,11,0.04)":"rgba(255,255,255,0.025)",transition:"all .25s",opacity:flag.status==="approved"?0.7:1}}>
-            <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
-              <div style={{width:8,height:8,borderRadius:"50%",flexShrink:0,marginTop:6,background:flag.sev==="high"?"#f59e0b":flag.sev==="medium"?"#818cf8":"rgba(255,255,255,0.3)"}}/>
-              <div style={{flex:1}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
-                  <span style={{fontSize:14,fontWeight:700,color:"#fff"}}>{flag.label}</span>
-                  <Badge color={flag.sev==="high"?"amber":flag.sev==="medium"?"indigo":"slate"}>{flag.sev} priority</Badge>
-                  {flag.status==="approved"&&<Badge color="emerald">Approved</Badge>}
-                  {flag.status==="escalated"&&<Badge color="rose">Escalated</Badge>}
-                </div>
-                <p style={{fontSize:12,color:"rgba(255,255,255,0.5)",lineHeight:1.7}}>{flag.detail}</p>
-              </div>
-              {flag.status==="pending" && (
-                <div style={{display:"flex",gap:8,flexShrink:0}}>
-                  <button onClick={()=>update(flag.id,"approved")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.12)",color:"#6ee7b7",transition:"all .15s"}}>Approve</button>
-                  <button onClick={()=>update(flag.id,"escalated")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.25)",background:"rgba(244,63,94,0.08)",color:"#fda4af",transition:"all .15s"}}>Escalate</button>
-                </div>
-              )}
-              {flag.status!=="pending" && (
-                <button onClick={()=>update(flag.id,"pending")} style={{fontSize:11,color:"rgba(255,255,255,0.2)",background:"none",border:"none",cursor:"pointer",flexShrink:0}}>undo</button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Confidence */}
-      <div style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",marginBottom:32}}>
-        <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:20}}>Pack Confidence Indicators</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"12px 32px"}}>
-          {confidence.map(c=>(
-            <div key={c.label}>
-              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:6}}>
-                <span style={{color:"rgba(255,255,255,0.5)"}}>{c.label}</span>
-                <span style={{fontWeight:700,color:c.score>=85?"#10b981":c.score>=75?"#f59e0b":"#f43f5e"}}>{c.score}%</span>
-              </div>
-              <FitBar value={c.score} color={c.score>=85?"#10b981":c.score>=75?"#f59e0b":"#f43f5e"}/>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {!exported ? (
-        <div style={{padding:32,borderRadius:20,border:"1px dashed rgba(99,102,241,0.3)",background:"rgba(99,102,241,0.04)",textAlign:"center"}}>
-          <div style={{width:52,height:52,borderRadius:"50%",background:"rgba(99,102,241,0.15)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </div>
-          <p style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:4}}>Ready to export your starter pack?</p>
-          <p style={{fontSize:13,color:"rgba(255,255,255,0.35)",marginBottom:24}}>{pending===0?"All flags resolved. Your pack is ready for export.":`${pending} flag${pending!==1?"s":""} still pending. You can export anyway or resolve them first.`}</p>
-          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-            <button onClick={()=>setExported(true)} style={{padding:"11px 28px",borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",background:"#6366f1",color:"#fff",boxShadow:"0 8px 24px rgba(99,102,241,0.3)",transition:"all .2s"}}>Export Starter Pack</button>
-            <button style={{padding:"11px 28px",borderRadius:12,fontSize:13,fontWeight:700,cursor:"pointer",border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.6)",transition:"all .2s"}}>Send to Senior Review</button>
-          </div>
-        </div>
-      ) : (
-        <div style={{padding:32,borderRadius:20,border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.05)",textAlign:"center"}}>
-          <div style={{width:52,height:52,borderRadius:"50%",background:"rgba(16,185,129,0.2)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-          </div>
-          <p style={{fontSize:15,fontWeight:800,color:"#fff",marginBottom:4}}>Starter pack exported.</p>
-          <p style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:20}}>{brief.clientName||"Engagement"} starter pack is ready in your project workspace.</p>
-          <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
-            {["Problem Statement.docx","Issue Tree.pdf","Roadmap.pptx"].map(f=>(
-              <span key={f} style={{fontSize:11,padding:"6px 12px",borderRadius:8,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.4)"}}>{f}</span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Shell ─────────────────────────────────────────────────────────────────────
-
-const STEPS = [
-  { id:1, label:"Brief Intake", sub:"Measure the client" },
-  { id:2, label:"Knowledge Activation", sub:"Pattern matching" },
-  { id:3, label:"Starter Pack", sub:"First pair drafted" },
-  { id:4, label:"Wear-Test Review", sub:"Confirm the fit" },
-];
 
 function App() {
-  const [step, setStep] = useState(1);
-  const [brief, setBrief] = useState({});
+  const { selectedId, setSelectedId, currentFolder, uploadedFiles, onUpload, clearUploads, fileInputRef } = useClientFolders();
+  const [briefText, setBriefText] = useState(INITIAL_BRIEF);
+  const analysis = useMemo(() => buildAnalysis(currentFolder, briefText), [currentFolder, briefText]);
+
+  const connectedTypes = [...new Set([...FIRM_LIBRARY.fileTypes, ...analysis.fileTypes])];
+  const workflowSteps = [
+    { key: 'intake', label: 'Brief / Upload', note: currentFolder.files.length ? `${currentFolder.files.length} client files active` : 'Awaiting company files' },
+    { key: 'classifier', label: 'Problem Classifier', note: analysis.projectClass },
+    { key: 'matcher', label: 'Asset Matcher', note: `${analysis.matched.frameworks.length + analysis.matched.templates.length + analysis.matched.governance.length} assets activated` },
+    { key: 'builder', label: 'Starter Kit Builder', note: analysis.starterKit.workplan[0] },
+    { key: 'review', label: 'Human Review Gate', note: `${analysis.warnings.length} active review warnings` },
+  ];
 
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#090a13 0%,#0e0f1f 50%,#0a0b18 100%)",position:"relative",overflow:"hidden"}}>
-      {/* Ambient glow */}
-      <div style={{position:"fixed",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse 70% 45% at 50% 0%,rgba(99,102,241,0.09) 0%,transparent 70%)"}}/>
-
-      {/* Header */}
-      <header style={{position:"relative",zIndex:10,borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(0,0,0,0.2)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)"}}>
-        <div style={{maxWidth:980,margin:"0 auto",padding:"14px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20}}>
-          {/* Brand */}
-          <div style={{display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
-            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 16px rgba(99,102,241,0.35)"}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            </div>
-            <div>
-              <span style={{fontSize:14,fontWeight:800,color:"#fff",letterSpacing:"-0.02em"}}>CGS Cobbler</span>
-              <span style={{fontSize:11,color:"rgba(255,255,255,0.2)",marginLeft:10,fontStyle:"italic",display:"none"}}>The first pair of shoes CGS builds for itself.</span>
-            </div>
+    <div className="app">
+      <div className="hero stack">
+        <div className="between" style={{ alignItems: 'flex-start' }}>
+          <div className="stack" style={{ gap: 10, maxWidth: 860 }}>
+            <div className="eyebrow">CGS Cobbler — Engagement Studio</div>
+            <div className="title">Google Drive-connected consulting startup studio, with visible firm knowledge and client-folder evidence.</div>
+            <div className="subtitle">A dark, product-like internal workflow prototype for assembling engagement starter kits. Firm Library methods stay constant. Current Client Folder evidence changes classification, asset matching, starter-kit output, and review warnings.</div>
           </div>
-
-          {/* Steps */}
-          <div style={{display:"flex",alignItems:"center",gap:8,flex:1,justifyContent:"center",maxWidth:600}}>
-            {STEPS.map((s,i)=>(
-              <React.Fragment key={s.id}>
-                <button onClick={()=>s.id<=step&&setStep(s.id)} disabled={s.id>step} style={{display:"flex",alignItems:"center",gap:8,background:"none",border:"none",cursor:s.id<=step?"pointer":"default",padding:0}}>
-                  <StepDot num={s.id} active={step===s.id} done={step>s.id}/>
-                  <span style={{fontSize:12,fontWeight:600,color:step===s.id?"#fff":step>s.id?"rgba(255,255,255,0.35)":"rgba(255,255,255,0.18)",whiteSpace:"nowrap",display:window.innerWidth<600?"none":"block"}}>{s.label}</span>
-                </button>
-                {i<STEPS.length-1 && <div style={{width:32,height:1,background:step>s.id?"rgba(99,102,241,0.4)":"rgba(255,255,255,0.08)",flexShrink:0,display:window.innerWidth<600?"none":"block"}}/>}
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* User */}
-          <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
-            <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(99,102,241,0.25)",border:"1px solid rgba(99,102,241,0.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#a5b4fc"}}>CG</div>
-            <div>
-              <p style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.65)",lineHeight:1}}>Consultant</p>
-              <p style={{fontSize:10,color:"rgba(255,255,255,0.25)"}}>CGS Advisors</p>
-            </div>
+          <div className="stack" style={{ minWidth: 280 }}>
+            <Badge tone="emerald">Connected knowledge environment</Badge>
+            <Badge tone="indigo">Human-in-the-loop</Badge>
+            <Badge tone="violet">Not chat-first</Badge>
           </div>
         </div>
-      </header>
 
-      {/* Progress bar */}
-      <div style={{height:2,background:"rgba(255,255,255,0.04)",position:"relative",zIndex:10}}>
-        <div style={{height:"100%",background:"linear-gradient(90deg,#6366f1,#8b5cf6)",transition:"width .5s ease",width:`${((step-1)/(STEPS.length-1))*100}%`}}/>
+        <div className="kpi-strip">
+          <div className="metric"><div className="metric-value">2</div><div className="metric-label">Knowledge layers active</div></div>
+          <div className="metric"><div className="metric-value">{FIRM_LIBRARY.filesLoaded}</div><div className="metric-label">Firm Library files indexed</div></div>
+          <div className="metric"><div className="metric-value">{currentFolder.files.length}</div><div className="metric-label">Current client files loaded</div></div>
+          <div className="metric"><div className="metric-value">{analysis.classification.confidence}%</div><div className="metric-label">Classifier confidence</div></div>
+        </div>
+
+        <div className="workflow">
+          {workflowSteps.map((step, idx) => (
+            <div key={step.key} className={`workflow-step ${idx < 5 ? 'active' : ''}`}>
+              <div className="label-sm">Step {idx + 1}</div>
+              <div className="step-name">{step.label}</div>
+              <div className="step-note">{step.note}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Main */}
-      <main style={{position:"relative",zIndex:5}}>
-        {step===1 && <ScreenIntake brief={brief} setBrief={setBrief} onNext={()=>setStep(2)}/>}
-        {step===2 && <ScreenKnowledge brief={brief} onNext={()=>setStep(3)}/>}
-        {step===3 && <ScreenStarterPack brief={brief} onNext={()=>setStep(4)}/>}
-        {step===4 && <ScreenReview brief={brief}/>}
-      </main>
-
-      {/* Footer */}
-      <footer style={{borderTop:"1px solid rgba(255,255,255,0.05)",marginTop:32,position:"relative",zIndex:5}}>
-        <div style={{maxWidth:980,margin:"0 auto",padding:"14px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:11,color:"rgba(255,255,255,0.18)"}}>CGS Cobbler · Internal Use Only · CGS Advisors</span>
-          <span style={{fontSize:11,color:"rgba(255,255,255,0.12)",fontStyle:"italic"}}>
-            {step===1?"Start crafting":step===2?"Knowledge patterns activated":step===3?"First pair drafted":"Measure the fit"}
-          </span>
+      <div className="card stack" style={{ marginBottom: 18 }}>
+        <div className="between">
+          <div>
+            <div className="section-title">Connected Knowledge Sources</div>
+            <div className="muted small" style={{ marginTop: 4 }}>Visible Google Drive-style source separation between the reusable firm library and the current client folder.</div>
+          </div>
+          <Badge tone="indigo">Google Drive Sources</Badge>
         </div>
-      </footer>
+
+        <div className="source-panel">
+          <div className="source-box stack">
+            <div className="between">
+              <div>
+                <div style={{ fontWeight: 700 }}>Firm Library</div>
+                <div className="small muted" style={{ marginTop: 4 }}>{FIRM_LIBRARY.sourceType} · {FIRM_LIBRARY.driveName}</div>
+              </div>
+              <Badge tone="violet">Reusable consulting brain</Badge>
+            </div>
+            <div className="two-col">
+              <div className="metric"><div className="metric-value">{FIRM_LIBRARY.filesLoaded}</div><div className="metric-label">Files loaded</div></div>
+              <div className="metric"><div className="metric-value">{FIRM_LIBRARY.frameworks.length + FIRM_LIBRARY.archetypes.length + FIRM_LIBRARY.templates.length}</div><div className="metric-label">Structured assets</div></div>
+            </div>
+            <div className="small muted">Last indexed: {FIRM_LIBRARY.lastIndexed}</div>
+            <div className="pill-tabs">{FIRM_LIBRARY.fileTypes.map(type => <div key={type} className="pill active">{type}</div>)}</div>
+          </div>
+
+          <div className="source-box stack">
+            <div className="between">
+              <div>
+                <div style={{ fontWeight: 700 }}>Current Client Folder</div>
+                <div className="small muted" style={{ marginTop: 4 }}>{currentFolder.sourceType} · {currentFolder.folderName}</div>
+              </div>
+              <Badge tone={uploadedFiles.length ? 'emerald' : 'indigo'}>{uploadedFiles.length ? 'Custom upload active' : 'Preset folder active'}</Badge>
+            </div>
+            <div className="two-col">
+              <div className="metric"><div className="metric-value">{currentFolder.files.length}</div><div className="metric-label">Files loaded</div></div>
+              <div className="metric"><div className="metric-value">{analysis.fileTypes.length}</div><div className="metric-label">File types read</div></div>
+            </div>
+            <div className="small muted">Last refreshed: {currentFolder.lastRefreshed}</div>
+            <div className="pill-tabs">{analysis.fileTypes.map(type => <div key={type} className="pill active">{type}</div>)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section-grid">
+        <div className="stack">
+          <div className="card stack">
+            <div className="between">
+              <div>
+                <div className="section-title">1. Project Intake</div>
+                <div className="small muted" style={{ marginTop: 4 }}>Select a preloaded company folder or upload your own files to simulate Google Drive ingestion.</div>
+              </div>
+              <Badge tone="indigo">Studio intake</Badge>
+            </div>
+
+            <div className="stack">
+              <div>
+                <div className="label-sm" style={{ marginBottom: 8 }}>Choose a client folder</div>
+                <div className="pill-tabs">
+                  {PRESET_CLIENTS.map(client => (
+                    <div key={client.id} className={`pill ${selectedId === client.id && !uploadedFiles.length ? 'active' : ''}`} onClick={() => { setSelectedId(client.id); clearUploads(); }}>
+                      {client.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="two-col">
+                <div className="stack">
+                  <div className="label-sm">Upload company files</div>
+                  <input ref={fileInputRef} type="file" multiple className="input" onChange={onUpload} />
+                  <div className="small muted">Upload multiple local documents to override the preset and create a custom client folder state.</div>
+                </div>
+                <div className="stack">
+                  <div className="label-sm">Current engagement prompt</div>
+                  <textarea value={briefText} onChange={e => setBriefText(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="file-list">
+                {currentFolder.files.map(file => (
+                  <div key={file.name} className="file-item stack">
+                    <div className="between">
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{file.name}</div>
+                        <div className="small muted" style={{ marginTop: 4 }}>{file.type}</div>
+                      </div>
+                      <Badge tone="indigo">Loaded</Badge>
+                    </div>
+                    <div className="small muted">{file.content.slice(0, 170)}{file.content.length > 170 ? '...' : ''}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="card stack">
+            <div className="between">
+              <div>
+                <div className="section-title">2. Knowledge Asset Matching</div>
+                <div className="small muted" style={{ marginTop: 4 }}>Firm Library methods are matched against current client-folder evidence, not just the brief.</div>
+              </div>
+              <Badge tone="violet">Dual-layer matching</Badge>
+            </div>
+
+            <div className="three-col">
+              <div className="asset-item stack">
+                <div className="label-sm">Project classification</div>
+                <div style={{ fontWeight: 800, fontSize: 18, lineHeight: 1.3 }}>{analysis.projectClass}</div>
+                <ProgressBar value={analysis.classification.confidence} />
+                <div className="small muted">Classifier confidence reflects combined signals from the brief plus client-folder files.</div>
+              </div>
+              <div className="asset-item stack">
+                <div className="label-sm">Visible tags</div>
+                <div className="pill-tabs">{analysis.tags.map(tag => <div key={tag} className="pill active">{tag}</div>)}</div>
+                <div className="small muted">These tags change when the company folder changes.</div>
+              </div>
+              <div className="asset-item stack">
+                <div className="label-sm">Priority recommendation</div>
+                <div className="small" style={{ lineHeight: 1.55 }}>{analysis.recommendation}</div>
+                <div className="small muted">Derived from Firm Library logic plus current folder evidence.</div>
+              </div>
+            </div>
+
+            <div className="grid grid-2">
+              <AssetList title="Matched Frameworks" items={analysis.matched.frameworks} tone="indigo" />
+              <AssetList title="Matched Archetypes" items={analysis.matched.archetypes} tone="violet" />
+            </div>
+            <div className="grid grid-2">
+              <AssetList title="Matched Templates" items={analysis.matched.templates} tone="emerald" />
+              <AssetList title="Matched Governance Rules" items={analysis.matched.governance} field="trigger" tone="amber" />
+            </div>
+          </div>
+        </div>
+
+        <div className="stack">
+          <div className="card stack">
+            <div className="between">
+              <div>
+                <div className="section-title">Retrieved Client Files / Evidence Used</div>
+                <div className="small muted" style={{ marginTop: 4 }}>Shows which company-specific materials influenced the result and why outputs differ by client folder.</div>
+              </div>
+              <Badge tone="emerald">Evidence visibility</Badge>
+            </div>
+
+            {analysis.evidence.map(file => (
+              <div key={file.name} className="evidence-item stack">
+                <div className="between">
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{file.name}</div>
+                    <div className="small muted" style={{ marginTop: 4 }}>{file.type}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div className="small highlight">{file.influence}% influence</div>
+                  </div>
+                </div>
+                <ProgressBar value={file.influence} />
+                <div className="stack" style={{ gap: 8 }}>
+                  {file.signals.length ? file.signals.map((signal, idx) => (
+                    <div key={idx} className="small muted"><span className="highlight">{signal.signal}:</span> {signal.text}</div>
+                  )) : <div className="small muted">No strong domain signal extracted. File still contributes weak context.</div>}
+                </div>
+              </div>
+            ))}
+
+            <div className="asset-item stack">
+              <div className="label-sm">Why this result is different</div>
+              {analysis.whyDifferent.map((line, idx) => <div key={idx} className="small muted" style={{ lineHeight: 1.55 }}>{line}</div>)}
+            </div>
+          </div>
+
+          <div className="card stack">
+            <div className="between">
+              <div>
+                <div className="section-title">3. Project Starter Kit</div>
+                <div className="small muted" style={{ marginTop: 4 }}>Starter-kit outputs stay structured, but they now change with client evidence, matched assets, and missing information.</div>
+              </div>
+              <Badge tone="indigo">State-driven outputs</Badge>
+            </div>
+
+            <div className="plan-item stack">
+              <div className="label-sm">Engagement archetype recommendation</div>
+              <div style={{ fontWeight: 800 }}>{analysis.starterKit.archetypeRecommendation}</div>
+            </div>
+
+            <div className="plan-item stack">
+              <div className="label-sm">2–4 week diagnostic workplan</div>
+              {analysis.starterKit.workplan.map((item, idx) => <div key={idx} className="small muted">• {item}</div>)}
+            </div>
+
+            <div className="plan-item stack">
+              <div className="label-sm">Interview guide</div>
+              {analysis.starterKit.interviewGuide.map((item, idx) => <div key={idx} className="small muted">• {item}</div>)}
+            </div>
+
+            <div className="plan-item stack">
+              <div className="label-sm">Storyline skeleton</div>
+              {analysis.starterKit.storyline.map((item, idx) => <div key={idx} className="small muted">• {item}</div>)}
+            </div>
+
+            <div className="plan-item stack">
+              <div className="label-sm">Risk / review checklist</div>
+              {analysis.starterKit.reviewChecklist.map((item, idx) => <div key={idx} className="small muted">• {item}</div>)}
+            </div>
+          </div>
+
+          <div className="card stack">
+            <div className="between">
+              <div>
+                <div className="section-title">4. Human Review Required</div>
+                <div className="small muted" style={{ marginTop: 4 }}>Warnings respond to missing evidence, stakeholder gaps, quantified-claim risk, sponsor ambiguity, and governance uncertainty.</div>
+              </div>
+              <Badge tone="rose">Review gate</Badge>
+            </div>
+
+            {analysis.warnings.map((warning, idx) => (
+              <div key={idx} className="warning-item stack">
+                <div className="between">
+                  <div style={{ fontWeight: 700 }}>{warning.label}</div>
+                  <SeverityBadge severity={warning.severity} />
+                </div>
+                <div className="small muted">{warning.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card soft stack" style={{ marginTop: 18 }}>
+        <div className="between">
+          <div className="section-title">Google Drive-connected knowledge model representation</div>
+          <Badge tone="indigo">Demo clarity</Badge>
+        </div>
+        <div className="footer-note">
+          Firm Library is represented as a structured consulting asset pack with frameworks, archetypes, templates, and governance rules. Current Client Folder is represented as either a selected preloaded company folder or uploaded local documents, mapped into a simulated Google Drive folder state. The app recomputes classification, asset matches, starter-kit outputs, evidence visibility, and review warnings every time the active client folder changes.
+        </div>
+        <div className="pill-tabs">
+          {connectedTypes.map(type => <div key={type} className="pill active">{type}</div>)}
+        </div>
+      </div>
     </div>
   );
 }
 
-ReactDOM.render(<App/>, document.getElementById("root"));
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
