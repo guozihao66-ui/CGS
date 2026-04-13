@@ -1179,16 +1179,14 @@ function ScreenStarterPack({ brief, onNext, clientFolder, scenarioId }) {
 
 function ScreenReview({ brief, clientFolder, scenarioId }) {
   const data = buildFolderAwareScenario(brief, clientFolder, scenarioId);
+  const baseFlags = data.dynamicReviewFlags;
+  const baseStarterPack = data.SP;
   const [flags, setFlags] = useState(data.dynamicReviewFlags);
   const [exported, setExported] = useState(false);
   const [activeFeedbackId, setActiveFeedbackId] = useState(null);
   const [feedbackDraft, setFeedbackDraft] = useState("");
   const [feedbackMemory, setFeedbackMemory] = useState([]);
-  const [starterPack, setStarterPack] = useState(data.SP);
-  const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status,feedback:status==="pending"?"":f.feedback||"",updatedSections:status==="pending"?[]:(f.updatedSections||[])}:f));
-  const pending = flags.filter(f=>f.status==="pending").length;
-  const approved = flags.filter(f=>f.status==="approved").length;
-  const revisionRequested = flags.filter(f=>f.status==="feedback").length;
+  const [showRevisedSummary, setShowRevisedSummary] = useState(false);
 
   const normalizeFeedback = (text="") => {
     const lower = text.toLowerCase();
@@ -1201,12 +1199,13 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
     return [...new Set(prefs)];
   };
 
-  const reviseStarterPackFromFeedback = (text="") => {
+  const analyzeFeedbackEffect = (text="") => {
     const lower = text.toLowerCase();
     const updatedSections = [];
     const affectsEvidence = lower.includes("client-specific") || lower.includes("client specific") || lower.includes("evidence") || lower.includes("validation");
     const affectsWorkplan = lower.includes("first-wave") || lower.includes("first wave") || lower.includes("concrete") || lower.includes("specific");
     const affectsOwnership = lower.includes("ownership") || lower.includes("owner") || lower.includes("stakeholder");
+    const affectsStoryline = lower.includes("overclaim") || lower.includes("soften") || lower.includes("causal");
 
     if (affectsEvidence) {
       updatedSections.push("Risk / Review Checklist");
@@ -1216,30 +1215,50 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
       updatedSections.push("2–4 Week Diagnostic Workplan");
     }
 
-    setStarterPack(prev => {
-      const next = {
-        ...prev,
-        slidesDetailed: (prev.slidesDetailed || []).map(item => ({ ...item })),
-        workstreams: prev.workstreams.map(ws => ({ ...ws, activities: [...ws.activities] })),
-      };
+    if (affectsStoryline) {
+      updatedSections.push("Storyline Skeleton");
+    }
 
-      if (lower.includes("overclaim") || lower.includes("soften") || lower.includes("causal")) {
-        updatedSections.push("Storyline Skeleton");
-        if ((next.slidesDetailed || []).length) {
-          next.slidesDetailed = next.slidesDetailed.map((slide, idx) => idx === 0
+    return {
+      updatedSections: [...new Set(updatedSections)],
+      affectsEvidence,
+      affectsWorkplan,
+      affectsOwnership,
+      affectsStoryline
+    };
+  };
+
+  const recomputeState = (nextFlags, nextFeedbackMemory) => {
+    const nextStarterPack = {
+      ...baseStarterPack,
+      slidesDetailed: (baseStarterPack.slidesDetailed || []).map(item => ({ ...item })),
+      slides: (baseStarterPack.slides || []).map(item => ({ ...item })),
+      workstreams: (baseStarterPack.workstreams || []).map(ws => ({ ...ws, activities: [...ws.activities] })),
+    };
+
+    let evidenceEnhanced = false;
+    const aggregateSections = [];
+
+    nextFeedbackMemory.forEach(entry => {
+      const effect = analyzeFeedbackEffect(entry.note);
+      aggregateSections.push(...effect.updatedSections);
+
+      if (effect.affectsStoryline) {
+        if ((nextStarterPack.slidesDetailed || []).length) {
+          nextStarterPack.slidesDetailed = nextStarterPack.slidesDetailed.map((slide, idx) => idx === 0
             ? { ...slide, keyMessage: slide.keyMessage.replace(/(^|\s)the answer is /i, "$1the current best-fit direction is ").replace(/(^|\s)the firm should /i, "$1the firm should likely ") }
             : slide
           );
-        } else if (next.slides && next.slides.length > 4) {
-          next.slides = next.slides.map((slide, idx) => idx === 4
+        } else if ((nextStarterPack.slides || []).length > 4) {
+          nextStarterPack.slides = nextStarterPack.slides.map((slide, idx) => idx === 4 && !slide.text.includes("(language softened for review)")
             ? { ...slide, text: `${slide.text} (language softened for review)` }
             : slide
           );
         }
       }
 
-      if (affectsWorkplan) {
-        next.workstreams = next.workstreams.map(ws => ws.id === "ws1"
+      if (effect.affectsWorkplan) {
+        nextStarterPack.workstreams = nextStarterPack.workstreams.map(ws => ws.id === "ws1"
           ? { ...ws, activities: [
               "Schedule 3 stakeholder interviews within the first 5 business days",
               "Review 5 recent startup decks and tag repeated reconstruction tasks",
@@ -1256,8 +1275,8 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
         );
       }
 
-      if (affectsOwnership) {
-        next.workstreams = next.workstreams.map(ws => ws.id === "ws4"
+      if (effect.affectsOwnership) {
+        nextStarterPack.workstreams = nextStarterPack.workstreams.map(ws => ws.id === "ws4"
           ? { ...ws, activities: [
               "Confirm governance owner for starter-kit updates and approvals",
               "Validate stakeholder decision rights before rollout recommendation",
@@ -1267,43 +1286,111 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
         );
       }
 
-      next.sessionRevisionMeta = {
-        active: true,
-        updatedSections: [...new Set(updatedSections)],
-        lastAppliedAt: "Current session"
-      };
-      return next;
+      if (effect.affectsEvidence) evidenceEnhanced = true;
     });
-    return [...new Set(updatedSections)];
+
+    nextStarterPack.sessionRevisionMeta = {
+      active: nextFeedbackMemory.length > 0,
+      updatedSections: [...new Set(aggregateSections)],
+      lastAppliedAt: nextFeedbackMemory.length ? "Current session" : null
+    };
+
+    const recomputedFlags = nextFlags.map(flag => {
+      const ownMemory = nextFeedbackMemory.find(entry => entry.flagId === flag.id);
+      const baseFlag = baseFlags.find(base => base.id === flag.id) || flag;
+      const updatedSections = ownMemory ? ownMemory.updatedSections : [];
+
+      if (ownMemory) {
+        return {
+          ...baseFlag,
+          status: "feedback",
+          feedback: ownMemory.note,
+          updatedSections
+        };
+      }
+
+      if (flag.status === "approved") {
+        return {
+          ...baseFlag,
+          status: "approved",
+          feedback: "",
+          updatedSections: []
+        };
+      }
+
+      const shouldEnrichEvidence = evidenceEnhanced && (flag.id === "rf2" || /evidence/i.test(baseFlag.label));
+      const addition = " Added current-session validation prompts tied to client folder evidence before recommendation wording is reused.";
+      return {
+        ...baseFlag,
+        status: "pending",
+        feedback: "",
+        updatedSections: shouldEnrichEvidence ? ["Risk / Review Checklist"] : [],
+        detail: shouldEnrichEvidence && !baseFlag.detail.includes(addition.trim()) ? `${baseFlag.detail}${addition}` : baseFlag.detail
+      };
+    });
+
+    return { starterPack: nextStarterPack, flags: recomputedFlags };
   };
 
   const saveFeedback = (flag) => {
     const note = feedbackDraft.trim();
     if (!note) return;
     const preferences = normalizeFeedback(note);
-    const updatedSections = reviseStarterPackFromFeedback(note);
-    const enrichEvidenceFlags = updatedSections.includes("Risk / Review Checklist");
-    setFlags(prev=>prev.map(f => {
-      if (f.id === flag.id) return { ...f, status:"feedback", feedback:note, updatedSections };
-      if (enrichEvidenceFlags && (f.id === "rf2" || /evidence/i.test(f.label))) {
-        const addition = " Added current-session validation prompts tied to client folder evidence before recommendation wording is reused.";
-        return {
-          ...f,
-          detail: f.detail.includes(addition.trim()) ? f.detail : `${f.detail}${addition}`,
-          updatedSections:[...(f.updatedSections||[]),"Risk / Review Checklist"]
-        };
-      }
-      return f;
-    }));
-    setFeedbackMemory(prev => [{
+    const updatedSections = analyzeFeedbackEffect(note).updatedSections;
+    const nextFeedbackMemory = [{
       id: `${flag.id}-${Date.now()}`,
+      flagId: flag.id,
       item: flag.label,
       note,
       preferences,
       updatedSections
-    }, ...prev].slice(0, 6));
+    }, ...feedbackMemory.filter(entry => entry.flagId !== flag.id)].slice(0, 6);
+    const nextFlags = flags.map(f => f.id === flag.id ? { ...f, status:"feedback" } : f);
+    const recomputed = recomputeState(nextFlags, nextFeedbackMemory);
+    setFeedbackMemory(nextFeedbackMemory);
+    setFlags(recomputed.flags);
     setFeedbackDraft("");
     setActiveFeedbackId(null);
+    setShowRevisedSummary(false);
+  };
+
+  const starterPack = recomputeState(flags, feedbackMemory).starterPack;
+  const activePreferences = [...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))];
+  const pending = flags.filter(f=>f.status==="pending").length;
+  const approved = flags.filter(f=>f.status==="approved").length;
+  const revisionRequested = flags.filter(f=>f.status==="feedback").length;
+  const allDecisionsComplete = pending === 0 && flags.length > 0;
+  const cautionAreas = flags.filter(f => f.status === "feedback" && f.sev === "high");
+
+  const undoDecision = (flag) => {
+    const nextFeedbackMemory = feedbackMemory.filter(entry => entry.flagId !== flag.id);
+    const nextFlags = flags.map(f => f.id === flag.id ? { ...f, status:"pending", feedback:"", updatedSections:[] } : f);
+    const recomputed = recomputeState(nextFlags, nextFeedbackMemory);
+    setFeedbackMemory(nextFeedbackMemory);
+    setFlags(recomputed.flags);
+    if (activeFeedbackId === flag.id) {
+      setActiveFeedbackId(null);
+      setFeedbackDraft("");
+    }
+    setShowRevisedSummary(false);
+  };
+
+  const revisedSummary = {
+    decisionOverview: {
+      approved,
+      revised: revisionRequested,
+      caution: cautionAreas.length
+    },
+    updatedNarrative: revisionRequested
+      ? `Human review tightened the current pack by converting ${revisionRequested} item${revisionRequested !== 1 ? "s" : ""} into active revision guidance while preserving ${approved} approved decision${approved !== 1 ? "s" : ""}. The current version now reflects session memory rather than the initial generated pass alone.`
+      : `Human review confirmed the current pack without additional revision requests. The current version is aligned to the reviewed evidence and approval decisions captured in this session.`,
+    highlights: starterPack.sessionRevisionMeta?.updatedSections || [],
+    preferences: activePreferences,
+    nextStep: cautionAreas.length
+      ? "Incorporate the logged revision guidance into the next internal draft, then run one final senior-quality check on the remaining high-priority caution areas before export."
+      : allDecisionsComplete
+        ? "Proceed to export the refined starter pack and use this reviewed session state as the working baseline for the next consultant revision cycle."
+        : "Complete the remaining review decisions before finalizing the revised session summary."
   };
 
   const confidence = data.dynamicMeta.workflowLabel.includes("AI")
@@ -1412,7 +1499,7 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
                 </div>
               )}
               {flag.status!=="pending" && (
-                <button onClick={()=>update(flag.id,"pending")} style={{fontSize:11,color:"rgba(255,255,255,0.2)",background:"none",border:"none",cursor:"pointer",flexShrink:0}}>undo</button>
+                <button onClick={()=>undoDecision(flag)} style={{fontSize:11,color:"rgba(255,255,255,0.2)",background:"none",border:"none",cursor:"pointer",flexShrink:0}}>{flag.status==="feedback"?"Undo Feedback":"Undo"}</button>
               )}
             </div>
           </div>
@@ -1445,8 +1532,8 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
             <div>
               <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.38)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Reusable Review Preferences</p>
               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {[...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))].length
-                  ? [...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))].map(pref => <Badge key={pref} color="indigo">{pref}</Badge>)
+                {activePreferences.length
+                  ? activePreferences.map(pref => <Badge key={pref} color="indigo">{pref}</Badge>)
                   : ["avoid overclaiming","prioritize company-specific evidence","make first-wave actions more concrete","clarify decision ownership"].map(pref => <Badge key={pref} color="slate">{pref}</Badge>)
                 }
               </div>
@@ -1505,6 +1592,61 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",marginBottom:32}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap",marginBottom:allDecisionsComplete && showRevisedSummary?18:0}}>
+          <div>
+            <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>Current Session Consolidation</p>
+            <p style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>Generate a refreshed page-level summary after all review decisions are complete.</p>
+          </div>
+          <button
+            disabled={!allDecisionsComplete}
+            onClick={()=>setShowRevisedSummary(true)}
+            style={{padding:"10px 16px",borderRadius:12,fontSize:12,fontWeight:700,cursor:allDecisionsComplete?"pointer":"not-allowed",border:`1px solid ${allDecisionsComplete?"rgba(99,102,241,0.28)":"rgba(255,255,255,0.08)"}`,background:allDecisionsComplete?"rgba(99,102,241,0.14)":"rgba(255,255,255,0.03)",color:allDecisionsComplete?"#c7d2fe":"rgba(255,255,255,0.28)",transition:"all .2s"}}
+          >Generate Revised Review Summary</button>
+        </div>
+
+        {showRevisedSummary && allDecisionsComplete && (
+          <div style={{padding:18,borderRadius:14,background:"rgba(15,23,42,0.55)",border:"1px solid rgba(99,102,241,0.16)"}}>
+            <div style={{display:"grid",gap:18}}>
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Session Decision Overview</p>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  <Badge color="emerald">{revisedSummary.decisionOverview.approved} approved</Badge>
+                  <Badge color="rose">{revisedSummary.decisionOverview.revised} revised through feedback</Badge>
+                  <Badge color={revisedSummary.decisionOverview.caution ? "amber" : "slate"}>{revisedSummary.decisionOverview.caution} unresolved caution areas</Badge>
+                </div>
+              </div>
+
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Updated Consultant Summary</p>
+                <p style={{fontSize:13,color:"rgba(255,255,255,0.66)",lineHeight:1.8}}>{revisedSummary.updatedNarrative}</p>
+              </div>
+
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Revised Starter Pack Highlights</p>
+                <div style={{display:"grid",gap:8}}>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.62)"}}>• Storyline Skeleton: {(starterPack.slidesDetailed && starterPack.slidesDetailed[0]?.keyMessage) || starterPack.execSummary}</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.62)"}}>• Risk / Review Checklist: {flags.filter(item => (item.updatedSections||[]).includes("Risk / Review Checklist") || item.status === "feedback").slice(0,2).map(item => item.label).join("; ") || "No active checklist revisions in session."}</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.62)"}}>• 2–4 Week Diagnostic Workplan: {(starterPack.workstreams?.[0]?.activities || []).slice(0,2).join("; ")}</div>
+                </div>
+              </div>
+
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Active Session Preferences</p>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  {revisedSummary.preferences.length ? revisedSummary.preferences.map(pref => <Badge key={pref} color="indigo">{pref}</Badge>) : <Badge color="slate">No active session preferences</Badge>}
+                </div>
+              </div>
+
+              <div>
+                <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recommended Next Step</p>
+                <p style={{fontSize:13,color:"rgba(255,255,255,0.66)",lineHeight:1.8}}>{revisedSummary.nextStep}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confidence */}

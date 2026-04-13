@@ -32,7 +32,9 @@ Switching the active client folder or uploading custom files now changes:
 - evidence shown to the user
 - review warnings
 - session-only feedback memory
+- full rollback of session-memory effects when feedback is undone
 - immediate in-session starter-pack revisions after reviewer feedback
+- gated revised-review-summary generation after all review decisions are complete
 
 ## Google Drive-connected model
 
