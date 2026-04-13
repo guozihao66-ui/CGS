@@ -335,57 +335,116 @@ function buildFolderAwareScenario(brief, folder) {
     ...overrides.reviewAdds
   ];
 
-  const enrichedSP = {
-    ...base.SP,
-    slidesDetailed: overrides.slideDetails || [],
-    problemStatement: kind === "ai"
-      ? "The client is not struggling with a lack of AI ambition, but with a lack of disciplined sequencing. Teams have inconsistent reporting practices, fragmented data ownership, and uneven workflow discipline. The engagement should clarify where AI can create practical near-term value, which capabilities are missing, and how to stage a first wave without overreaching into a broad enterprise program."
-      : kind === "inertia"
-        ? "The enterprise does not lack transformation ambition, but it lacks a workable path into execution. Sponsors are not aligned on what happens first, governance forums are not producing decisions, and accountability remains diffuse. The engagement should diagnose the sources of inertia, reduce scope to a realistic first wave, and define the sponsorship model needed to restore movement."
-        : "The firm already has strong consulting knowledge, but startup quality still depends too heavily on manual reconstruction. Delivery teams search across decks and folders, junior consultants lack a consistent starting point, and reusable assets are not activated in a disciplined way. The engagement should standardize the first mile of project startup while preserving senior judgment in client-facing recommendations.",
-    execSummary: kind === "ai"
-      ? "The client should not begin with a broad AI transformation ambition. It should begin with a practical first wave grounded in readiness, use-case prioritization, and disciplined sponsor ownership. We recommend a focused sequence that clarifies data and workflow readiness, selects a small set of high-value pilots, and puts governance in place before scaling."
-      : kind === "inertia"
-        ? "The transformation is stalled not because the enterprise lacks intent, but because it lacks clarity, sequencing, and aligned sponsorship. We recommend shrinking the agenda to a more executable first wave, resetting governance around real decision rights, and using a 90-day momentum plan to convert ambition into accountable action."
-        : "The firm should treat startup standardization as an internal operating model issue, not simply a content-management issue. Reusable methods and templates already exist, but they are not being activated consistently. We recommend a structured starter kit, clearer governance rules, and human review checkpoints that improve startup speed and consistency without flattening senior judgment.",
-    workstreams: kind === "ai"
-      ? [
+  const enrichedSP = kind === "ai"
+    ? {
+        problemStatement: "The client is not struggling with a lack of AI ambition, but with a lack of disciplined sequencing. Teams have inconsistent reporting practices, fragmented data ownership, and uneven workflow discipline. The engagement should clarify where AI can create practical near-term value, which capabilities are missing, and how to stage a first wave without overreaching into a broad enterprise program.",
+        issueTree: {
+          label: "How should the client launch a practical first wave of AI-enabled operating improvement?",
+          children: [
+            { label: "What is the current level of AI readiness?", children: [
+              { label: "How mature are data ownership and reporting practices?" },
+              { label: "Where does workflow coordination break down today?" },
+              { label: "What governance and talent gaps limit execution?" },
+            ]},
+            { label: "Which AI use cases are worth sequencing first?", children: [
+              { label: "Which use cases create visible value within 6 months?" },
+              { label: "Which depend on capabilities the client does not yet have?" },
+              { label: "How should feasibility and value be balanced?" },
+            ]},
+            { label: "What first-wave transformation path is realistic?", children: [
+              { label: "What capabilities must be built before scaling?" },
+              { label: "What should remain manual versus automated initially?" },
+              { label: "What governance model is needed for wave one?" },
+            ]},
+          ]
+        },
+        workstreams: [
           { id:"ws1", name:"AI Readiness Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"AI Readiness Snapshot", activities:["Assess data ownership and reporting quality","Map workflow friction across planning and operations","Identify sponsor and governance gaps","Clarify where automation readiness differs by team or site"] },
           { id:"ws2", name:"Use Case Prioritization", weeks:"Weeks 2–3", color:"#8b5cf6", deliverable:"Prioritized Use Case Set", activities:["Inventory candidate use cases","Score value versus feasibility","Compare dependencies and data constraints","Select first-wave pilot candidates"] },
           { id:"ws3", name:"Pilot Design", weeks:"Weeks 3–5", color:"#a78bfa", deliverable:"Pilot Charter and Scorecard", activities:["Define pilot scope and owners","Build success metrics and review gates","Clarify operating changes needed for pilots","Prepare executive steering decisions"] },
           { id:"ws4", name:"First-Wave Roadmap", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"6-Month Execution Roadmap", activities:["Sequence pilots into a first-wave roadmap","Set governance cadence and decision checkpoints","Identify capability-build requirements","Frame scale-up criteria"] },
-        ]
-      : kind === "inertia"
-        ? [
+        ],
+        roadmap: [
+          { label:"30 Days", subtitle:"Diagnose & Focus", color:"#6366f1", items:["Assess readiness across reporting, data, and workflow","Identify top candidate use cases","Define pilot selection criteria","Align sponsor expectations for wave one"] },
+          { label:"60 Days", subtitle:"Prioritize & Prepare", color:"#8b5cf6", items:["Finalize use-case selection","Set pilot charters and owners","Clarify governance cadence","Define baseline and review metrics"] },
+          { label:"90 Days", subtitle:"Launch & Learn", color:"#a78bfa", items:["Launch first pilots","Review value evidence and constraints","Adjust operating model for scale","Decide whether to expand wave two"] },
+        ],
+        execSummary: "The client should not begin with a broad AI transformation ambition. It should begin with a practical first wave grounded in readiness, use-case prioritization, and disciplined sponsor ownership. We recommend a focused sequence that clarifies data and workflow readiness, selects a small set of high-value pilots, and puts governance in place before scaling.",
+        slidesDetailed: overrides.slideDetails || []
+      }
+    : kind === "inertia"
+      ? {
+          problemStatement: "The enterprise does not lack transformation ambition, but it lacks a workable path into execution. Sponsors are not aligned on what happens first, governance forums are not producing decisions, and accountability remains diffuse. The engagement should diagnose the sources of inertia, reduce scope to a realistic first wave, and define the sponsorship model needed to restore movement.",
+          issueTree: {
+            label: "How should the enterprise move from stalled transformation intent to executable first-wave momentum?",
+            children: [
+              { label: "Where is momentum breaking down?", children: [
+                { label: "Which governance meetings fail to produce decisions?" },
+                { label: "Where is accountability diffuse or unclear?" },
+                { label: "Which initiatives are competing for attention?" },
+              ]},
+              { label: "Why is alignment weak?", children: [
+                { label: "What do different leaders mean by progress?" },
+                { label: "How does sponsorship differ across functions?" },
+                { label: "Which tradeoffs are unresolved?" },
+              ]},
+              { label: "What should happen first?", children: [
+                { label: "Which first-wave priorities create visible momentum?" },
+                { label: "What sequencing will reduce ambiguity?" },
+                { label: "What sponsorship model is needed to sustain execution?" },
+              ]},
+            ]
+          },
+          workstreams: [
             { id:"ws1", name:"Inertia Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"Transformation Stall Diagnostic", activities:["Map stalled initiatives and repeated decision loops","Identify where governance forums fail to produce action","Assess where accountability is diffuse","Surface root causes of momentum loss"] },
             { id:"ws2", name:"Sponsor Alignment Reset", weeks:"Weeks 2–3", color:"#8b5cf6", deliverable:"Stakeholder Alignment Map", activities:["Interview executive sponsors","Clarify conflicting priorities and unresolved tradeoffs","Map decision rights and escalation paths","Define where sponsorship is missing or ambiguous"] },
             { id:"ws3", name:"First-Wave Prioritization", weeks:"Weeks 3–5", color:"#a78bfa", deliverable:"Focused First-Wave Agenda", activities:["Shrink the initiative set","Prioritize executable first-wave choices","Set momentum markers and delivery owners","Test whether scope matches sponsor readiness"] },
             { id:"ws4", name:"Governance Reset", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"90-Day Momentum Plan", activities:["Redesign governance cadence","Assign decision owners and escalation rules","Prepare steering memo and restart plan","Launch momentum review checkpoints"] },
-          ]
-        : [
+          ],
+          roadmap: [
+            { label:"30 Days", subtitle:"Diagnose & Clarify", color:"#6366f1", items:["Identify where momentum breaks down","Map governance and sponsor failure points","Clarify initiative overload","Document accountability gaps"] },
+            { label:"60 Days", subtitle:"Prioritize & Reset", color:"#8b5cf6", items:["Shrink the first-wave agenda","Reset sponsor roles and decision rights","Redesign governance cadence","Define momentum markers"] },
+            { label:"90 Days", subtitle:"Execute & Stabilize", color:"#a78bfa", items:["Start focused first-wave delivery","Track momentum and sponsor follow-through","Refine escalation rules","Stabilize operating rhythm"] },
+          ],
+          execSummary: "The transformation is stalled not because the enterprise lacks intent, but because it lacks clarity, sequencing, and aligned sponsorship. We recommend shrinking the agenda to a more executable first wave, resetting governance around real decision rights, and using a 90-day momentum plan to convert ambition into accountable action.",
+          slidesDetailed: overrides.slideDetails || []
+        }
+      : {
+          problemStatement: "The firm already has strong consulting knowledge, but startup quality still depends too heavily on manual reconstruction. Delivery teams search across decks and folders, junior consultants lack a consistent starting point, and reusable assets are not activated in a disciplined way. The engagement should standardize the first mile of project startup while preserving senior judgment in client-facing recommendations.",
+          issueTree: {
+            label: "How should the firm standardize project startup without over-templating delivery?",
+            children: [
+              { label: "Where does startup friction currently occur?", children: [
+                { label: "How are methods and templates currently stored and reused?" },
+                { label: "Where does manual reconstruction consume the most time?" },
+                { label: "Which roles create or inherit startup ambiguity?" },
+              ]},
+              { label: "What parts of startup can be standardized?", children: [
+                { label: "Which activities are repeatable across engagements?" },
+                { label: "Which templates should be activated first?" },
+                { label: "Where must senior judgment remain human-led?" },
+              ]},
+              { label: "What operating model changes are needed?", children: [
+                { label: "How should delivery ownership be clarified?" },
+                { label: "What governance is needed for reusable IP?" },
+                { label: "How should quality and review gates be embedded?" },
+              ]},
+            ]
+          },
+          workstreams: [
             { id:"ws1", name:"Startup Friction Diagnostic", weeks:"Weeks 1–2", color:"#6366f1", deliverable:"Startup Friction Map", activities:["Review how teams launch new engagements","Map search and reconstruction pain points","Identify unclear startup ownership","Document where quality varies most"] },
             { id:"ws2", name:"Asset Classification", weeks:"Weeks 2–3", color:"#8b5cf6", deliverable:"Matched Asset Inventory", activities:["Catalog reusable methods and templates","Group assets by startup moment and use case","Identify what can be reused as-is","Separate reusable assets from judgment-led work"] },
             { id:"ws3", name:"Starter Kit Design", weeks:"Weeks 3–5", color:"#a78bfa", deliverable:"Engagement Starter Kit", activities:["Design modular starter-kit structure","Draft interview guide and storyline skeleton","Set evidence and review checkpoints","Refine which sections remain human-led"] },
             { id:"ws4", name:"Governance and Pilot", weeks:"Weeks 5–6", color:"#c4b5fd", deliverable:"Pilot Rollout Plan", activities:["Define governance ownership for starter-kit reuse","Select pilot service line","Set approval and escalation rules","Prepare rollout and adoption plan"] },
           ],
-    roadmap: kind === "ai"
-      ? [
-          { label:"30 Days", subtitle:"Diagnose & Focus", color:"#6366f1", items:["Assess readiness across reporting, data, and workflow","Identify top candidate use cases","Define pilot selection criteria","Align sponsor expectations for wave one"] },
-          { label:"60 Days", subtitle:"Prioritize & Prepare", color:"#8b5cf6", items:["Finalize use-case selection","Set pilot charters and owners","Clarify governance cadence","Define baseline and review metrics"] },
-          { label:"90 Days", subtitle:"Launch & Learn", color:"#a78bfa", items:["Launch first pilots","Review value evidence and constraints","Adjust operating model for scale","Decide whether to expand wave two"] },
-        ]
-      : kind === "inertia"
-        ? [
-            { label:"30 Days", subtitle:"Diagnose & Clarify", color:"#6366f1", items:["Identify where momentum breaks down","Map governance and sponsor failure points","Clarify initiative overload","Document accountability gaps"] },
-            { label:"60 Days", subtitle:"Prioritize & Reset", color:"#8b5cf6", items:["Shrink the first-wave agenda","Reset sponsor roles and decision rights","Redesign governance cadence","Define momentum markers"] },
-            { label:"90 Days", subtitle:"Execute & Stabilize", color:"#a78bfa", items:["Start focused first-wave delivery","Track momentum and sponsor follow-through","Refine escalation rules","Stabilize operating rhythm"] },
-          ]
-        : [
+          roadmap: [
             { label:"30 Days", subtitle:"Diagnose & Classify", color:"#6366f1", items:["Map startup friction across teams","Inventory reusable startup materials","Identify variance in kickoff ownership","Classify repeatable startup moments"] },
             { label:"60 Days", subtitle:"Assemble & Pilot", color:"#8b5cf6", items:["Assemble the first starter kit","Pilot with one service line","Review usability and quality consistency","Refine governance and evidence rules"] },
             { label:"90 Days", subtitle:"Govern & Scale", color:"#a78bfa", items:["Expand to more engagement types","Set reusable asset governance","Train teams on the workflow","Scale while preserving senior judgment"] },
-          ]
-  };
+          ],
+          execSummary: "The firm should treat startup standardization as an internal operating model issue, not simply a content-management issue. Reusable methods and templates already exist, but they are not being activated consistently. We recommend a structured starter kit, clearer governance rules, and human review checkpoints that improve startup speed and consistency without flattening senior judgment.",
+          slidesDetailed: overrides.slideDetails || []
+        };
 
   return {
     ...base,
