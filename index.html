@@ -48,6 +48,8 @@ const BRIEF_OPTIONS = [
   {
     id: "brief-1",
     name: "Mid-Market Industrial AI Transformation",
+    scenarioId: "ai",
+    folderId: "folder-ai",
     brief: {
       clientName: "Mid-Market Industrial AI Transformation",
       industry: "Industrial Manufacturing",
@@ -60,30 +62,8 @@ const BRIEF_OPTIONS = [
   {
     id: "brief-2",
     name: "Professional Services Standardization",
-    brief: {
-      clientName: "Professional Services Standardization",
-      industry: "Professional Services",
-      objective: "Improve consistency, reduce startup time, and create more reusable delivery components",
-      challenge: "A growing professional services firm has strong senior expertise, but project delivery varies significantly across teams. New engagements often start slowly because consultants search for prior materials, rebuild workplans, and adapt deliverables differently depending on who leads the work. Leadership wants to improve consistency, reduce startup time, and create more reusable delivery components without turning the business into a rigid template-driven model. The client is asking for a practical way to standardize how work begins, how methods are selected, and how quality is protected.",
-      timeline: "8 weeks",
-      urgency: "High",
-    }
-  },
-  {
-    id: "brief-3",
-    name: "Stalled Enterprise Transformation",
-    brief: {
-      clientName: "Stalled Enterprise Transformation",
-      industry: "Enterprise Transformation",
-      objective: "Diagnose the sources of inertia and recommend a realistic first-wave path",
-      challenge: "A large enterprise has announced an ambitious transformation agenda focused on becoming more digital, more integrated, and more agile. However, progress has been slower than expected. Leaders across functions support the idea of change, but there is low clarity on which initiatives matter most, where accountability should sit, and what should happen first. The executive team is seeking an advisor to help diagnose the sources of inertia, focus the agenda, and recommend a realistic first-wave path that can build momentum.",
-      timeline: "10 weeks",
-      urgency: "Critical",
-    }
-  },
-  {
-    id: "brief-4",
-    name: "Professional Services Standardization",
+    scenarioId: "standardization",
+    folderId: "folder-ps",
     brief: {
       clientName: "Professional Services Standardization",
       industry: "Professional Services",
@@ -91,6 +71,20 @@ const BRIEF_OPTIONS = [
       challenge: "A mid-sized advisory firm has grown quickly through senior practitioner expertise, but delivery quality now varies widely by team. Methods, frameworks, and client-ready materials exist across many decks and folders, yet new projects still start with too much manual reconstruction. Leadership wants to standardize the first 2–4 weeks of project startup without turning the firm into a rigid template factory. They want a better way to classify opportunities, reuse proven methods, and give junior consultants a clearer starting point while preserving senior judgment in client-facing recommendations.",
       timeline: "6 weeks",
       urgency: "High",
+    }
+  },
+  {
+    id: "brief-3",
+    name: "Stalled Enterprise Transformation",
+    scenarioId: "inertia",
+    folderId: "folder-inertia",
+    brief: {
+      clientName: "Stalled Enterprise Transformation",
+      industry: "Enterprise Transformation",
+      objective: "Diagnose the sources of inertia and recommend a realistic first-wave path",
+      challenge: "A large enterprise has announced an ambitious transformation agenda focused on becoming more digital, more integrated, and more agile. However, progress has been slower than expected. Leaders across functions support the idea of change, but there is low clarity on which initiatives matter most, where accountability should sit, and what should happen first. The executive team is seeking an advisor to help diagnose the sources of inertia, focus the agenda, and recommend a realistic first-wave path that can build momentum.",
+      timeline: "10 weeks",
+      urgency: "Critical",
     }
   }
 ];
@@ -737,24 +731,15 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
             const found = BRIEF_OPTIONS.find(b => b.id === value);
             if (found) {
               setBrief(found.brief);
-              const mappedFolder = value === "brief-1"
-                ? CLIENT_FOLDERS[1]
-                : value === "brief-3"
-                  ? CLIENT_FOLDERS[2]
-                  : CLIENT_FOLDERS[0];
-              const mappedScenario = value === "brief-1"
-                ? "ai"
-                : value === "brief-3"
-                  ? "inertia"
-                  : "standardization";
+              const mappedFolder = CLIENT_FOLDERS.find(folder => folder.id === found.folderId) || CLIENT_FOLDERS[0];
               setClientFolder(mappedFolder);
-              setScenarioId(mappedScenario);
+              setScenarioId(found.scenarioId);
               setUploadedFiles([]);
             }
           }}
           style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,outline:"none",transition:"all .2s"}}
         >
-          <option value="" style={{background:"#111"}}>Choose one of the 4 database companies</option>
+          <option value="" style={{background:"#111"}}>Choose one of the 3 demo companies</option>
           {BRIEF_OPTIONS.map(option => (
             <option key={option.id} value={option.id} style={{background:"#111"}}>{option.name}</option>
           ))}
