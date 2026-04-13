@@ -215,7 +215,8 @@ const CLIENT_FOLDERS = [
   {
     id: "folder-ps",
     label: "Professional Services Standardization",
-    folderName: "Professional Services Standardization", 
+    folderName: "Professional Services Standardization",
+    filesLoadedLabel: 64,
     files: [
       { name: "Client Brief - delivery startup variation.docx", type: "Brief", content: "Professional services firm. Delivery startup varies by team. Consultants rebuild workplans from old decks. Leadership wants reusable startup kits, governance, interview guides, and consistency without removing partner judgment." },
       { name: "Workflow Notes - kickoff pain points.txt", type: "Workflow Notes", content: "Teams search across folders, decks, and templates. Junior consultants lack a clear starting point. Existing methods are reusable but scattered. No single owner for starter kit governance." },
@@ -226,7 +227,8 @@ const CLIENT_FOLDERS = [
   {
     id: "folder-ai",
     label: "Mid-Market Industrial AI Transformation",
-    folderName: "Mid-Market Industrial AI Transformation", 
+    folderName: "Mid-Market Industrial AI Transformation",
+    filesLoadedLabel: 87,
     files: [
       { name: "Strategy Memo - AI planning and reporting.docx", type: "Strategy Memo", content: "Industrial manufacturer with AI ambition across planning, reporting, and workflow coordination. COO needs a practical first wave in 6 months. Data ownership is fragmented and reporting is inconsistent." },
       { name: "Ops Workflow Notes - plant coordination.txt", type: "Workflow Notes", content: "Workflow handoffs between plants and central planning are inconsistent. Teams manage exceptions manually. Readiness for automation differs by site." },
@@ -237,7 +239,8 @@ const CLIENT_FOLDERS = [
   {
     id: "folder-inertia",
     label: "Enterprise Transformation Execution Stall",
-    folderName: "Enterprise Transformation Execution Stall", 
+    folderName: "Enterprise Transformation Execution Stall",
+    filesLoadedLabel: 53,
     files: [
       { name: "Transformation Brief - stalled momentum.docx", type: "Brief", content: "Large enterprise transformation has stalled. Governance meetings end without decisions. Accountability is unclear and the first-wave roadmap is overloaded." },
       { name: "Stakeholder Notes - executive interviews.docx", type: "Stakeholder Notes", content: "CEO wants speed. Operations wants process discipline. Technology wants data foundations. Business leaders want quick wins. Sponsor model is unresolved." },
@@ -649,7 +652,7 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
               <Badge color="emerald">{uploadedFiles.length ? "Custom Upload" : "Preset Folder"}</Badge>
             </div>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginBottom:8}}>{clientFolder.folderName}</p>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>{clientFolder.files.length} files loaded · {clientFolder.files.map(f => f.type || inferFileType(f.name)).filter((v,i,a)=>a.indexOf(v)===i).join(", ")}</p>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>{clientFolder.filesLoadedLabel || clientFolder.files.length} files loaded · {clientFolder.files.map(f => f.type || inferFileType(f.name)).filter((v,i,a)=>a.indexOf(v)===i).join(", ")}</p>
           </div>
         </div>
       </div>
