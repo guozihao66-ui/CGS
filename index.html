@@ -214,8 +214,8 @@ const FIRM_LIBRARY = {
 const CLIENT_FOLDERS = [
   {
     id: "folder-ps",
-    label: "CrestPoint Advisory",
-    folderName: "CrestPoint / Delivery Standardization",
+    label: "Professional Services Standardization",
+    folderName: "Professional Services Standardization", 
     files: [
       { name: "Client Brief - delivery startup variation.docx", type: "Brief", content: "Professional services firm. Delivery startup varies by team. Consultants rebuild workplans from old decks. Leadership wants reusable startup kits, governance, interview guides, and consistency without removing partner judgment." },
       { name: "Workflow Notes - kickoff pain points.txt", type: "Workflow Notes", content: "Teams search across folders, decks, and templates. Junior consultants lack a clear starting point. Existing methods are reusable but scattered. No single owner for starter kit governance." },
@@ -225,8 +225,8 @@ const CLIENT_FOLDERS = [
   },
   {
     id: "folder-ai",
-    label: "Northstar Components",
-    folderName: "Northstar Components / AI Transformation",
+    label: "Mid-Market Industrial AI Transformation",
+    folderName: "Mid-Market Industrial AI Transformation", 
     files: [
       { name: "Strategy Memo - AI planning and reporting.docx", type: "Strategy Memo", content: "Industrial manufacturer with AI ambition across planning, reporting, and workflow coordination. COO needs a practical first wave in 6 months. Data ownership is fragmented and reporting is inconsistent." },
       { name: "Ops Workflow Notes - plant coordination.txt", type: "Workflow Notes", content: "Workflow handoffs between plants and central planning are inconsistent. Teams manage exceptions manually. Readiness for automation differs by site." },
@@ -236,8 +236,8 @@ const CLIENT_FOLDERS = [
   },
   {
     id: "folder-inertia",
-    label: "Apex Enterprise Group",
-    folderName: "Apex Enterprise Group / Transformation Stall",
+    label: "Enterprise Transformation Execution Stall",
+    folderName: "Enterprise Transformation Execution Stall", 
     files: [
       { name: "Transformation Brief - stalled momentum.docx", type: "Brief", content: "Large enterprise transformation has stalled. Governance meetings end without decisions. Accountability is unclear and the first-wave roadmap is overloaded." },
       { name: "Stakeholder Notes - executive interviews.docx", type: "Stakeholder Notes", content: "CEO wants speed. Operations wants process discipline. Technology wants data foundations. Business leaders want quick wins. Sponsor model is unresolved." },
@@ -603,7 +603,11 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
             const found = BRIEF_OPTIONS.find(b => b.id === value);
             if (found) {
               setBrief(found.brief);
-              const mappedFolder = value === "brief-1" ? CLIENT_FOLDERS[1] : value === "brief-3" || value === "brief-5" ? CLIENT_FOLDERS[2] : CLIENT_FOLDERS[0];
+              const mappedFolder = value === "brief-1"
+                ? CLIENT_FOLDERS[1]
+                : value === "brief-3"
+                  ? CLIENT_FOLDERS[2]
+                  : CLIENT_FOLDERS[0];
               setClientFolder(mappedFolder);
               setUploadedFiles([]);
             }
