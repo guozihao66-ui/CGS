@@ -31,6 +31,8 @@ Switching the active client folder or uploading custom files now changes:
 - starter kit recommendation context
 - evidence shown to the user
 - review warnings
+- session-only feedback memory
+- immediate in-session starter-pack revisions after reviewer feedback
 
 ## Google Drive-connected model
 
@@ -53,3 +55,7 @@ Switching the active client folder or uploading custom files now changes:
 6. Move to Wear-Test Review and show:
    - evidence used
    - different warnings by company context
+   - Feedback replacing Escalate on each review item
+   - inline reviewer guidance entry with Save Feedback / Cancel
+   - Feedback Memory as session-only reusable review guidance
+   - immediate starter-pack revisions in Storyline Skeleton, Risk / Review Checklist, and 2–4 Week Diagnostic Workplan after feedback is saved

@@ -1181,10 +1181,130 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
   const data = buildFolderAwareScenario(brief, clientFolder, scenarioId);
   const [flags, setFlags] = useState(data.dynamicReviewFlags);
   const [exported, setExported] = useState(false);
-  const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status}:f));
+  const [activeFeedbackId, setActiveFeedbackId] = useState(null);
+  const [feedbackDraft, setFeedbackDraft] = useState("");
+  const [feedbackMemory, setFeedbackMemory] = useState([]);
+  const [starterPack, setStarterPack] = useState(data.SP);
+  const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status,feedback:status==="pending"?"":f.feedback||"",updatedSections:status==="pending"?[]:(f.updatedSections||[])}:f));
   const pending = flags.filter(f=>f.status==="pending").length;
   const approved = flags.filter(f=>f.status==="approved").length;
-  const escalated = flags.filter(f=>f.status==="escalated").length;
+  const revisionRequested = flags.filter(f=>f.status==="feedback").length;
+
+  const normalizeFeedback = (text="") => {
+    const lower = text.toLowerCase();
+    const prefs = [];
+    if (lower.includes("overclaim") || lower.includes("soften") || lower.includes("causal")) prefs.push("avoid overclaiming");
+    if (lower.includes("client-specific") || lower.includes("client specific") || lower.includes("evidence")) prefs.push("prioritize company-specific evidence");
+    if (lower.includes("first-wave") || lower.includes("first wave") || lower.includes("concrete") || lower.includes("specific")) prefs.push("make first-wave actions more concrete");
+    if (lower.includes("ownership") || lower.includes("owner") || lower.includes("stakeholder")) prefs.push("clarify decision ownership");
+    if (lower.includes("validation") || lower.includes("validate") || lower.includes("checklist")) prefs.push("add validation steps before recommendation");
+    return [...new Set(prefs)];
+  };
+
+  const reviseStarterPackFromFeedback = (text="") => {
+    const lower = text.toLowerCase();
+    const updatedSections = [];
+    const affectsEvidence = lower.includes("client-specific") || lower.includes("client specific") || lower.includes("evidence") || lower.includes("validation");
+    const affectsWorkplan = lower.includes("first-wave") || lower.includes("first wave") || lower.includes("concrete") || lower.includes("specific");
+    const affectsOwnership = lower.includes("ownership") || lower.includes("owner") || lower.includes("stakeholder");
+
+    if (affectsEvidence) {
+      updatedSections.push("Risk / Review Checklist");
+    }
+
+    if (affectsWorkplan || affectsOwnership) {
+      updatedSections.push("2–4 Week Diagnostic Workplan");
+    }
+
+    setStarterPack(prev => {
+      const next = {
+        ...prev,
+        slidesDetailed: (prev.slidesDetailed || []).map(item => ({ ...item })),
+        workstreams: prev.workstreams.map(ws => ({ ...ws, activities: [...ws.activities] })),
+      };
+
+      if (lower.includes("overclaim") || lower.includes("soften") || lower.includes("causal")) {
+        updatedSections.push("Storyline Skeleton");
+        if ((next.slidesDetailed || []).length) {
+          next.slidesDetailed = next.slidesDetailed.map((slide, idx) => idx === 0
+            ? { ...slide, keyMessage: slide.keyMessage.replace(/(^|\s)the answer is /i, "$1the current best-fit direction is ").replace(/(^|\s)the firm should /i, "$1the firm should likely ") }
+            : slide
+          );
+        } else if (next.slides && next.slides.length > 4) {
+          next.slides = next.slides.map((slide, idx) => idx === 4
+            ? { ...slide, text: `${slide.text} (language softened for review)` }
+            : slide
+          );
+        }
+      }
+
+      if (affectsWorkplan) {
+        next.workstreams = next.workstreams.map(ws => ws.id === "ws1"
+          ? { ...ws, activities: [
+              "Schedule 3 stakeholder interviews within the first 5 business days",
+              "Review 5 recent startup decks and tag repeated reconstruction tasks",
+              "Document current kickoff ownership by partner, manager, and consultant role",
+              ...ws.activities.slice(0,1)
+            ] }
+          : ws.id === "ws3"
+            ? { ...ws, activities: [
+                "Draft a concrete week-by-week starter-kit build sequence",
+                "Assign review checkpoints for storyline, evidence, and workplan modules",
+                ...ws.activities.slice(0,2)
+              ] }
+            : ws
+        );
+      }
+
+      if (affectsOwnership) {
+        next.workstreams = next.workstreams.map(ws => ws.id === "ws4"
+          ? { ...ws, activities: [
+              "Confirm governance owner for starter-kit updates and approvals",
+              "Validate stakeholder decision rights before rollout recommendation",
+              ...ws.activities.slice(0,2)
+            ] }
+          : ws
+        );
+      }
+
+      next.sessionRevisionMeta = {
+        active: true,
+        updatedSections: [...new Set(updatedSections)],
+        lastAppliedAt: "Current session"
+      };
+      return next;
+    });
+    return [...new Set(updatedSections)];
+  };
+
+  const saveFeedback = (flag) => {
+    const note = feedbackDraft.trim();
+    if (!note) return;
+    const preferences = normalizeFeedback(note);
+    const updatedSections = reviseStarterPackFromFeedback(note);
+    const enrichEvidenceFlags = updatedSections.includes("Risk / Review Checklist");
+    setFlags(prev=>prev.map(f => {
+      if (f.id === flag.id) return { ...f, status:"feedback", feedback:note, updatedSections };
+      if (enrichEvidenceFlags && (f.id === "rf2" || /evidence/i.test(f.label))) {
+        const addition = " Added current-session validation prompts tied to client folder evidence before recommendation wording is reused.";
+        return {
+          ...f,
+          detail: f.detail.includes(addition.trim()) ? f.detail : `${f.detail}${addition}`,
+          updatedSections:[...(f.updatedSections||[]),"Risk / Review Checklist"]
+        };
+      }
+      return f;
+    }));
+    setFeedbackMemory(prev => [{
+      id: `${flag.id}-${Date.now()}`,
+      item: flag.label,
+      note,
+      preferences,
+      updatedSections
+    }, ...prev].slice(0, 6));
+    setFeedbackDraft("");
+    setActiveFeedbackId(null);
+  };
 
   const confidence = data.dynamicMeta.workflowLabel.includes("AI")
     ? [
@@ -1218,7 +1338,7 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
       <div style={{marginBottom:32}}>
         <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700,marginBottom:12}}>Step 04 — Wear-Test Review</p>
         <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>Does the first pair fit?</h1>
-        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Review Cobbler's assumptions and confirm, revise, or escalate before exporting the starter pack.</p>
+        <p style={{color:"rgba(255,255,255,0.45)",fontSize:15}}>Review Cobbler's assumptions, log revision guidance, and apply session-memory updates before exporting the starter pack.</p>
       </div>
 
       <div style={{padding:18,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",marginBottom:24}}>
@@ -1240,7 +1360,7 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
 
       {/* Summary bar */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:32}}>
-        {[{label:"Pending Review",val:pending,color:"amber"},{label:"Approved",val:approved,color:"emerald"},{label:"Escalated",val:escalated,color:"rose"}].map(s=>(
+        {[{label:"Pending Review",val:pending,color:"amber"},{label:"Approved",val:approved,color:"emerald"},{label:"Revision Requested",val:revisionRequested,color:"rose"}].map(s=>(
           <div key={s.label} style={{padding:16,borderRadius:14,border:`1px solid ${s.color==="amber"?"rgba(245,158,11,0.2)":s.color==="emerald"?"rgba(16,185,129,0.2)":"rgba(244,63,94,0.2)"}`,background:s.color==="amber"?"rgba(245,158,11,0.05)":s.color==="emerald"?"rgba(16,185,129,0.05)":"rgba(244,63,94,0.05)",textAlign:"center"}}>
             <div style={{fontSize:28,fontWeight:800,color:s.color==="amber"?"#fcd34d":s.color==="emerald"?"#6ee7b7":"#fda4af",marginBottom:2}}>{s.val}</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{s.label}</div>
@@ -1251,7 +1371,7 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
       {/* Flags */}
       <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:32}}>
         {flags.map(flag=>(
-          <div key={flag.id} style={{padding:20,borderRadius:16,border:`1px solid ${flag.status==="approved"?"rgba(16,185,129,0.2)":flag.status==="escalated"?"rgba(244,63,94,0.25)":flag.sev==="high"?"rgba(245,158,11,0.2)":flag.sev==="medium"?"rgba(255,255,255,0.09)":"rgba(255,255,255,0.05)"}`,background:flag.status==="approved"?"rgba(16,185,129,0.04)":flag.status==="escalated"?"rgba(244,63,94,0.05)":flag.sev==="high"?"rgba(245,158,11,0.04)":"rgba(255,255,255,0.025)",transition:"all .25s",opacity:flag.status==="approved"?0.7:1}}>
+          <div key={flag.id} style={{padding:20,borderRadius:16,border:`1px solid ${flag.status==="approved"?"rgba(16,185,129,0.2)":flag.status==="feedback"?"rgba(244,63,94,0.25)":flag.sev==="high"?"rgba(245,158,11,0.2)":flag.sev==="medium"?"rgba(255,255,255,0.09)":"rgba(255,255,255,0.05)"}`,background:flag.status==="approved"?"rgba(16,185,129,0.04)":flag.status==="feedback"?"rgba(244,63,94,0.05)":flag.sev==="high"?"rgba(245,158,11,0.04)":"rgba(255,255,255,0.025)",transition:"all .25s",opacity:flag.status==="approved"?0.7:1}}>
             <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
               <div style={{width:8,height:8,borderRadius:"50%",flexShrink:0,marginTop:6,background:flag.sev==="high"?"#f59e0b":flag.sev==="medium"?"#818cf8":"rgba(255,255,255,0.3)"}}/>
               <div style={{flex:1}}>
@@ -1259,14 +1379,36 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
                   <span style={{fontSize:14,fontWeight:700,color:"#fff"}}>{flag.label}</span>
                   <Badge color={flag.sev==="high"?"amber":flag.sev==="medium"?"indigo":"slate"}>{flag.sev} priority</Badge>
                   {flag.status==="approved"&&<Badge color="emerald">Approved</Badge>}
-                  {flag.status==="escalated"&&<Badge color="rose">Escalated</Badge>}
+                  {flag.status==="feedback"&&<Badge color="rose">Feedback Logged</Badge>}
                 </div>
                 <p style={{fontSize:12,color:"rgba(255,255,255,0.5)",lineHeight:1.7}}>{flag.detail}</p>
+                {flag.feedback && (
+                  <div style={{marginTop:12,padding:12,borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <p style={{fontSize:10,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"#fda4af",marginBottom:6}}>Revision Guidance</p>
+                    <p style={{fontSize:12,color:"rgba(255,255,255,0.68)",lineHeight:1.7}}>{flag.feedback}</p>
+                    {!!(flag.updatedSections||[]).length && <p style={{fontSize:11,color:"#c4b5fd",marginTop:8}}>Applied to: {flag.updatedSections.join(" • ")}</p>}
+                  </div>
+                )}
+                {activeFeedbackId===flag.id && (
+                  <div style={{marginTop:14,padding:14,borderRadius:14,background:"rgba(15,23,42,0.75)",border:"1px solid rgba(99,102,241,0.22)"}}>
+                    <p style={{fontSize:11,fontWeight:700,color:"#a5b4fc",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Suggest revision guidance</p>
+                    <textarea
+                      value={feedbackDraft}
+                      onChange={e=>setFeedbackDraft(e.target.value)}
+                      placeholder="e.g. reduce overclaiming, use more client-specific evidence, make the first-wave plan more concrete"
+                      style={{width:"100%",minHeight:96,padding:"12px 14px",borderRadius:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"#fff",fontSize:13,resize:"vertical",outline:"none"}}
+                    />
+                    <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:12}}>
+                      <button onClick={()=>{setActiveFeedbackId(null);setFeedbackDraft("");}} style={{padding:"8px 12px",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)",color:"rgba(255,255,255,0.55)"}}>Cancel</button>
+                      <button onClick={()=>saveFeedback(flag)} style={{padding:"8px 14px",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.2)",background:"rgba(244,63,94,0.12)",color:"#fda4af"}}>Save Feedback</button>
+                    </div>
+                  </div>
+                )}
               </div>
               {flag.status==="pending" && (
                 <div style={{display:"flex",gap:8,flexShrink:0}}>
                   <button onClick={()=>update(flag.id,"approved")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.12)",color:"#6ee7b7",transition:"all .15s"}}>Approve</button>
-                  <button onClick={()=>update(flag.id,"escalated")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.25)",background:"rgba(244,63,94,0.08)",color:"#fda4af",transition:"all .15s"}}>Escalate</button>
+                  <button onClick={()=>{setActiveFeedbackId(flag.id);setFeedbackDraft(flag.feedback||"");}} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.25)",background:"rgba(244,63,94,0.08)",color:"#fda4af",transition:"all .15s"}}>Feedback</button>
                 </div>
               )}
               {flag.status!=="pending" && (
@@ -1275,6 +1417,94 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1.1fr 0.9fr",gap:16,marginBottom:32}}>
+        <div style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:14,flexWrap:"wrap"}}>
+            <div>
+              <p style={{fontSize:11,fontWeight:700,color:"#818cf8",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>Feedback Memory</p>
+              <p style={{fontSize:13,color:"rgba(255,255,255,0.52)"}}>Session Memory Active. Feedback captured for this session and applied to the current revision cycle.</p>
+            </div>
+            <Badge color="violet">Human + Agent loop</Badge>
+          </div>
+
+          <div style={{display:"grid",gap:14}}>
+            <div>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.38)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recent Feedback Captured</p>
+              <div style={{display:"grid",gap:8}}>
+                {feedbackMemory.length ? feedbackMemory.map(entry => (
+                  <div key={entry.id} style={{padding:12,borderRadius:12,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <p style={{fontSize:12,color:"#fff",marginBottom:4}}>{entry.note}</p>
+                    <p style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{entry.item}</p>
+                  </div>
+                )) : <p style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>No session feedback captured yet.</p>}
+              </div>
+            </div>
+
+            <div>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.38)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Reusable Review Preferences</p>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {[...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))].length
+                  ? [...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))].map(pref => <Badge key={pref} color="indigo">{pref}</Badge>)
+                  : ["avoid overclaiming","prioritize company-specific evidence","make first-wave actions more concrete","clarify decision ownership"].map(pref => <Badge key={pref} color="slate">{pref}</Badge>)
+                }
+              </div>
+            </div>
+
+            <div>
+              <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.38)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Applied in Next Iteration</p>
+              <div style={{display:"grid",gap:8}}>
+                {(starterPack.sessionRevisionMeta?.updatedSections || []).length
+                  ? starterPack.sessionRevisionMeta.updatedSections.map(section => (
+                      <div key={section} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",borderRadius:10,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.18)"}}>
+                        <span style={{fontSize:12,color:"rgba(255,255,255,0.72)"}}>{section}</span>
+                        <span style={{fontSize:11,color:"#a5b4fc"}}>Applied to current revision cycle</span>
+                      </div>
+                    ))
+                  : <p style={{fontSize:12,color:"rgba(255,255,255,0.35)"}}>Starter-pack revisions will appear here after feedback is saved.</p>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{padding:20,borderRadius:16,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+          <p style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Starter Pack Revisions in Session</p>
+          <div style={{display:"grid",gap:14}}>
+            <div style={{padding:14,borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#fff"}}>Storyline Skeleton</p>
+                {starterPack.sessionRevisionMeta?.updatedSections?.includes("Storyline Skeleton") && <Badge color="violet">Updated from Feedback</Badge>}
+              </div>
+              <p style={{fontSize:12,color:"rgba(255,255,255,0.58)",lineHeight:1.7}}>{(starterPack.slidesDetailed && starterPack.slidesDetailed[0]?.keyMessage) || starterPack.execSummary}</p>
+            </div>
+
+            <div style={{padding:14,borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#fff"}}>Risk / Review Checklist</p>
+                {starterPack.sessionRevisionMeta?.updatedSections?.includes("Risk / Review Checklist") && <Badge color="violet">Revised in Current Session</Badge>}
+              </div>
+              <div style={{display:"grid",gap:6}}>
+                {flags.slice(0,3).map(item => (
+                  <div key={item.id} style={{fontSize:12,color:"rgba(255,255,255,0.55)"}}>• {item.label}</div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{padding:14,borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+                <p style={{fontSize:13,fontWeight:700,color:"#fff"}}>2–4 Week Diagnostic Workplan</p>
+                {starterPack.sessionRevisionMeta?.updatedSections?.includes("2–4 Week Diagnostic Workplan") && <Badge color="violet">Updated from Feedback</Badge>}
+              </div>
+              <div style={{display:"grid",gap:6}}>
+                {(starterPack.workstreams?.[0]?.activities || []).slice(0,4).map((activity, idx) => (
+                  <div key={idx} style={{fontSize:12,color:"rgba(255,255,255,0.55)"}}>• {activity}</div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Confidence */}
