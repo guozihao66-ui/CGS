@@ -1018,9 +1018,10 @@ function ScreenStarterPack({ brief, onNext, clientFolder, scenarioId }) {
   return (
     <div className="fade-in" style={{maxWidth:900,margin:"0 auto",padding:"48px 24px"}}>
       <div style={{marginBottom:32}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,flexWrap:"wrap"}}>
           <p style={{fontSize:11,letterSpacing:"0.12em",color:"#818cf8",textTransform:"uppercase",fontWeight:700}}>Step 03 — Starter Pack</p>
           <Badge color="emerald">First Pair Drafted</Badge>
+          <Badge color="slate">Scenario: {scenarioId || "standardization"}</Badge>
         </div>
         <h1 style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:8}}>{brief.clientName||"Engagement"} — Starter Pack</h1>
         <p style={{color:"rgba(255,255,255,0.45)",fontSize:14}}>AI-generated from brief + activated knowledge. Review each section before proceeding to wear-test.</p>
