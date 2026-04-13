@@ -1354,6 +1354,15 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
     setShowRevisedSummary(false);
   };
 
+  const approveDecision = (flag) => {
+    const nextFeedbackMemory = feedbackMemory.filter(entry => entry.flagId !== flag.id);
+    const nextFlags = flags.map(f => f.id === flag.id ? { ...f, status:"approved", feedback:"", updatedSections:[] } : f);
+    const recomputed = recomputeState(nextFlags, nextFeedbackMemory);
+    setFeedbackMemory(nextFeedbackMemory);
+    setFlags(recomputed.flags);
+    setShowRevisedSummary(false);
+  };
+
   const starterPack = recomputeState(flags, feedbackMemory).starterPack;
   const activePreferences = [...new Set(feedbackMemory.flatMap(entry => entry.preferences || []))];
   const pending = flags.filter(f=>f.status==="pending").length;
@@ -1494,7 +1503,7 @@ function ScreenReview({ brief, clientFolder, scenarioId }) {
               </div>
               {flag.status==="pending" && (
                 <div style={{display:"flex",gap:8,flexShrink:0}}>
-                  <button onClick={()=>update(flag.id,"approved")} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.12)",color:"#6ee7b7",transition:"all .15s"}}>Approve</button>
+                  <button onClick={()=>approveDecision(flag)} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(16,185,129,0.3)",background:"rgba(16,185,129,0.12)",color:"#6ee7b7",transition:"all .15s"}}>Approve</button>
                   <button onClick={()=>{setActiveFeedbackId(flag.id);setFeedbackDraft(flag.feedback||"");}} style={{padding:"6px 12px",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",border:"1px solid rgba(244,63,94,0.25)",background:"rgba(244,63,94,0.08)",color:"#fda4af",transition:"all .15s"}}>Feedback</button>
                 </div>
               )}
