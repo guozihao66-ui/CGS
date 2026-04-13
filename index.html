@@ -59,9 +59,9 @@ const BRIEF_OPTIONS = [
   },
   {
     id: "brief-2",
-    name: "Professional Services Delivery Standardization",
+    name: "Professional Services Standardization",
     brief: {
-      clientName: "Professional Services Delivery Standardization",
+      clientName: "Professional Services Standardization",
       industry: "Professional Services",
       objective: "Improve consistency, reduce startup time, and create more reusable delivery components",
       challenge: "A growing professional services firm has strong senior expertise, but project delivery varies significantly across teams. New engagements often start slowly because consultants search for prior materials, rebuild workplans, and adapt deliverables differently depending on who leads the work. Leadership wants to improve consistency, reduce startup time, and create more reusable delivery components without turning the business into a rigid template-driven model. The client is asking for a practical way to standardize how work begins, how methods are selected, and how quality is protected.",
@@ -71,9 +71,9 @@ const BRIEF_OPTIONS = [
   },
   {
     id: "brief-3",
-    name: "Enterprise Transformation Execution Stall",
+    name: "Stalled Enterprise Transformation",
     brief: {
-      clientName: "Enterprise Transformation Execution Stall",
+      clientName: "Stalled Enterprise Transformation",
       industry: "Enterprise Transformation",
       objective: "Diagnose the sources of inertia and recommend a realistic first-wave path",
       challenge: "A large enterprise has announced an ambitious transformation agenda focused on becoming more digital, more integrated, and more agile. However, progress has been slower than expected. Leaders across functions support the idea of change, but there is low clarity on which initiatives matter most, where accountability should sit, and what should happen first. The executive team is seeking an advisor to help diagnose the sources of inertia, focus the agenda, and recommend a realistic first-wave path that can build momentum.",
@@ -91,18 +91,6 @@ const BRIEF_OPTIONS = [
       challenge: "A mid-sized advisory firm has grown quickly through senior practitioner expertise, but delivery quality now varies widely by team. Methods, frameworks, and client-ready materials exist across many decks and folders, yet new projects still start with too much manual reconstruction. Leadership wants to standardize the first 2–4 weeks of project startup without turning the firm into a rigid template factory. They want a better way to classify opportunities, reuse proven methods, and give junior consultants a clearer starting point while preserving senior judgment in client-facing recommendations.",
       timeline: "6 weeks",
       urgency: "High",
-    }
-  },
-  {
-    id: "brief-5",
-    name: "Stalled Enterprise Transformation",
-    brief: {
-      clientName: "Stalled Enterprise Transformation",
-      industry: "Enterprise",
-      objective: "Identify where momentum is breaking down and what sponsorship model is needed",
-      challenge: "A North American enterprise has declared transformation a top strategic priority, but execution has stalled for nearly a year. The CEO wants faster progress, operations wants process discipline first, technology wants better data foundations, and business leaders want immediate quick wins. There is no single agreed first-wave roadmap, and governance meetings often end without decisions. The client is asking for a practical diagnostic that identifies where momentum is breaking down, what can be sequenced first, and what sponsorship model is needed to move beyond debate into execution.",
-      timeline: "12 weeks",
-      urgency: "Critical",
     }
   }
 ];
@@ -617,7 +605,7 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
           }}
           style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,outline:"none",transition:"all .2s"}}
         >
-          <option value="" style={{background:"#111"}}>Choose one of the 5 database companies</option>
+          <option value="" style={{background:"#111"}}>Choose one of the 4 database companies</option>
           {BRIEF_OPTIONS.map(option => (
             <option key={option.id} value={option.id} style={{background:"#111"}}>{option.name}</option>
           ))}
