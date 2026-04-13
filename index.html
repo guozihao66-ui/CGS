@@ -250,15 +250,18 @@ function inferFileType(name="") {
   return "Uploaded Document";
 }
 
-function classifyFromFolder(files, brief) {
+function classifyFromFolder(files, brief, scenarioId) {
+  if (scenarioId === "ai") return "ai";
+  if (scenarioId === "inertia") return "inertia";
+  if (scenarioId === "standardization") return "standardization";
   const text = `${brief.clientName||""} ${brief.industry||""} ${brief.objective||""} ${brief.challenge||""} ${files.map(f => `${f.name} ${f.content}`).join(" ")}`.toLowerCase();
   if (text.includes("ai") || text.includes("use case") || text.includes("manufacturer") || text.includes("automation")) return "ai";
   if (text.includes("stalled") || text.includes("sponsor") || text.includes("governance") || text.includes("decision rights") || text.includes("momentum")) return "inertia";
   return "standardization";
 }
 
-function buildFolderAwareScenario(brief, folder) {
-  const kind = classifyFromFolder(folder.files, brief);
+function buildFolderAwareScenario(brief, folder, scenarioId) {
+  const kind = classifyFromFolder(folder.files, brief, scenarioId);
   const base = kind === "ai"
     ? getScenarioData(BRIEF_OPTIONS[0].brief)
     : kind === "inertia"
@@ -696,7 +699,7 @@ function IssueNode({ node, depth=0 }) {
 
 // ── Screen 1 ─────────────────────────────────────────────────────────────────
 
-function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, uploadedFiles, setUploadedFiles }) {
+function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, uploadedFiles, setUploadedFiles, setScenarioId }) {
   const [focused, setFocused] = useState(null);
   const [selectedBrief, setSelectedBrief] = useState("");
   const fields = [
@@ -736,10 +739,16 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
               setBrief(found.brief);
               const mappedFolder = value === "brief-1"
                 ? CLIENT_FOLDERS[1]
-                : (value === "brief-3" || value === "brief-5")
+                : value === "brief-3"
                   ? CLIENT_FOLDERS[2]
                   : CLIENT_FOLDERS[0];
+              const mappedScenario = value === "brief-1"
+                ? "ai"
+                : value === "brief-3"
+                  ? "inertia"
+                  : "standardization";
               setClientFolder(mappedFolder);
+              setScenarioId(mappedScenario);
               setUploadedFiles([]);
             }
           }}
@@ -822,9 +831,9 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
 
 // ── Screen 2 ─────────────────────────────────────────────────────────────────
 
-function ScreenKnowledge({ brief, onNext, clientFolder }) {
+function ScreenKnowledge({ brief, onNext, clientFolder, scenarioId }) {
   const [ready, setReady] = useState(false);
-  const data = buildFolderAwareScenario(brief, clientFolder);
+  const data = buildFolderAwareScenario(brief, clientFolder, scenarioId);
   const [sel, setSel] = useState({f1:true,f2:true,f3:false,e1:true,e2:false});
   useEffect(()=>{ const t=setTimeout(()=>setReady(true),1900); return()=>clearTimeout(t); },[]);
 
@@ -988,10 +997,10 @@ function ScreenKnowledge({ brief, onNext, clientFolder }) {
 
 // ── Screen 3 ─────────────────────────────────────────────────────────────────
 
-function ScreenStarterPack({ brief, onNext, clientFolder }) {
+function ScreenStarterPack({ brief, onNext, clientFolder, scenarioId }) {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState("problem");
-  const data = buildFolderAwareScenario(brief, clientFolder);
+  const data = buildFolderAwareScenario(brief, clientFolder, scenarioId);
   useEffect(()=>{ const t=setTimeout(()=>setReady(true),2200); return()=>clearTimeout(t); },[]);
 
   if (!ready) return (
@@ -1182,8 +1191,8 @@ function ScreenStarterPack({ brief, onNext, clientFolder }) {
 
 // ── Screen 4 ─────────────────────────────────────────────────────────────────
 
-function ScreenReview({ brief, clientFolder }) {
-  const data = buildFolderAwareScenario(brief, clientFolder);
+function ScreenReview({ brief, clientFolder, scenarioId }) {
+  const data = buildFolderAwareScenario(brief, clientFolder, scenarioId);
   const [flags, setFlags] = useState(data.dynamicReviewFlags);
   const [exported, setExported] = useState(false);
   const update = (id, status) => setFlags(prev=>prev.map(f=>f.id===id?{...f,status}:f));
@@ -1342,6 +1351,7 @@ function App() {
   const [brief, setBrief] = useState({});
   const [clientFolder, setClientFolder] = useState(CLIENT_FOLDERS[0]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [scenarioId, setScenarioId] = useState("standardization");
 
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#090a13 0%,#0e0f1f 50%,#0a0b18 100%)",position:"relative",overflow:"hidden"}}>
@@ -1393,10 +1403,10 @@ function App() {
 
       {/* Main */}
       <main style={{position:"relative",zIndex:5}}>
-        {step===1 && <ScreenIntake brief={brief} setBrief={setBrief} onNext={()=>setStep(2)} clientFolder={clientFolder} setClientFolder={setClientFolder} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles}/>}
-        {step===2 && <ScreenKnowledge brief={brief} onNext={()=>setStep(3)} clientFolder={clientFolder}/>}
-        {step===3 && <ScreenStarterPack brief={brief} onNext={()=>setStep(4)} clientFolder={clientFolder}/>}
-        {step===4 && <ScreenReview brief={brief} clientFolder={clientFolder}/>}
+        {step===1 && <ScreenIntake brief={brief} setBrief={setBrief} onNext={()=>setStep(2)} clientFolder={clientFolder} setClientFolder={setClientFolder} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} setScenarioId={setScenarioId}/>}
+        {step===2 && <ScreenKnowledge brief={brief} onNext={()=>setStep(3)} clientFolder={clientFolder} scenarioId={scenarioId}/>}
+        {step===3 && <ScreenStarterPack brief={brief} onNext={()=>setStep(4)} clientFolder={clientFolder} scenarioId={scenarioId}/>}
+        {step===4 && <ScreenReview brief={brief} clientFolder={clientFolder} scenarioId={scenarioId}/>}
       </main>
 
       {/* Footer */}
