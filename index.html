@@ -608,7 +608,7 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
               setBrief(found.brief);
               const mappedFolder = value === "brief-1"
                 ? CLIENT_FOLDERS[1]
-                : value === "brief-3"
+                : (value === "brief-3" || value === "brief-5")
                   ? CLIENT_FOLDERS[2]
                   : CLIENT_FOLDERS[0];
               setClientFolder(mappedFolder);
