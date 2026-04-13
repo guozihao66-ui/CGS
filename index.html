@@ -275,6 +275,14 @@ function buildFolderAwareScenario(brief, folder) {
       starterKitLabel: "Industrial AI Enablement Archetype",
       reviewAdds: [
         { id:"rf-ai-1", sev:"medium", label:"Unsupported quantified AI value claims", detail:"Pilot value estimates appear directional only. Add baseline assumptions before quantifying impact.", status:"pending" }
+      ],
+      slideDetails: [
+        { slide:"Slide 1", title:"Why a practical first wave matters", purpose:"establish that the client needs visible AI value without triggering a large, unstable enterprise program.", keyMessage:"AI ambition is present, but practical sequencing matters more than broad aspiration.", visual:"simple wave-one schematic showing readiness, use-case selection, and pilot launch sequence." },
+        { slide:"Slide 2", title:"Current readiness and operating friction", purpose:"show where reporting inconsistency, fragmented ownership, and workflow friction block AI execution.", keyMessage:"the bottleneck is not idea scarcity, but readiness and operating discipline.", visual:"readiness heatmap across data ownership, reporting quality, workflow consistency, and governance." },
+        { slide:"Slide 3", title:"Prioritized AI use cases", purpose:"explain which use cases should move first and why.", keyMessage:"the right first wave balances business value, feasibility, and sponsor support.", visual:"prioritization matrix comparing value, feasibility, and dependency burden." },
+        { slide:"Slide 4", title:"Capability build requirements", purpose:"clarify what capabilities must be strengthened before scaling beyond pilots.", keyMessage:"pilot success depends on governance, data ownership, and execution discipline.", visual:"capability ladder showing what is needed for pilot, wave two, and scale." },
+        { slide:"Slide 5", title:"6-month execution roadmap", purpose:"show a realistic sequence from diagnosis to first pilot launch.", keyMessage:"value should be created through staged learning, not a single enterprise leap.", visual:"6-month roadmap with pilot gates, owners, and decision checkpoints." },
+        { slide:"Slide 6", title:"Governance and next decisions", purpose:"define the sponsor and governance decisions required before launch.", keyMessage:"the first wave needs explicit ownership, not just enthusiasm.", visual:"governance panel with sponsor roles, decision rights, and escalation points." },
       ]
     };
   } else if (kind === "inertia") {
@@ -285,6 +293,14 @@ function buildFolderAwareScenario(brief, folder) {
       starterKitLabel: "Transformation Inertia Removal Archetype",
       reviewAdds: [
         { id:"rf-in-1", sev:"high", label:"Sponsor ambiguity requires review", detail:"Transformation recommendations should not circulate without confirming who owns first-wave decisions.", status:"pending" }
+      ],
+      slideDetails: [
+        { slide:"Slide 1", title:"Why momentum has stalled", purpose:"establish that the core problem is not lack of ambition, but failure to translate ambition into an executable first-wave model.", keyMessage:"leaders support transformation conceptually, but momentum is breaking down because clarity, sequence, and ownership remain unresolved.", visual:"simple transformation timeline showing declared ambition versus actual stalled progress and repeated decision loops." },
+        { slide:"Slide 2", title:"Governance and alignment breakdowns", purpose:"show where executive sponsorship, governance cadence, and accountability are currently producing friction instead of momentum.", keyMessage:"governance forums are active, but they are not converting disagreement into decision or decision into execution.", visual:"stakeholder alignment map or governance failure-point diagram showing where debate continues without resolution." },
+        { slide:"Slide 3", title:"First-wave prioritization logic", purpose:"explain how the enterprise should reduce overload and choose a smaller, more executable first-wave agenda.", keyMessage:"restoring momentum requires shrinking scope, sequencing realistically, and matching priorities to actual sponsor readiness and delivery capacity.", visual:"prioritization matrix comparing urgency, dependency logic, sponsor support, and execution feasibility." },
+        { slide:"Slide 4", title:"Sponsorship and accountability reset", purpose:"define the governance model required to move from recurring discussion into accountable action.", keyMessage:"the transformation will not move until decision rights, escalation paths, and sponsor ownership are made explicit.", visual:"decision-rights framework or governance reset model with sponsor, owners, and escalation thresholds." },
+        { slide:"Slide 5", title:"90-day momentum roadmap", purpose:"show the immediate first-wave path from stall diagnosis into disciplined execution.", keyMessage:"the priority is not to restart everything, but to create a focused first wave that proves movement and restores confidence.", visual:"90-day roadmap with momentum markers, governance resets, and decision checkpoints." },
+        { slide:"Slide 6", title:"Next governance decisions", purpose:"make explicit the executive choices required immediately after alignment.", keyMessage:"leaders must decide who owns the first wave, which initiatives stop, and how progress will be reviewed.", visual:"decision checklist covering sponsor, scope, cadence, and measurement." },
       ]
     };
   } else {
@@ -295,6 +311,14 @@ function buildFolderAwareScenario(brief, folder) {
       starterKitLabel: "Professional Services Standardization Archetype",
       reviewAdds: [
         { id:"rf-ps-1", sev:"medium", label:"Governance uncertainty around reusable assets", detail:"Client materials suggest reusable methods exist, but ownership for approving or updating starter-kit assets is still unclear.", status:"pending" }
+      ],
+      slideDetails: [
+        { slide:"Slide 1", title:"Why startup standardization matters now", purpose:"frame why delivery variance and manual reconstruction have become operating problems instead of isolated team issues.", keyMessage:"the firm already has strong expertise, but startup still depends too heavily on who leads the work.", visual:"startup friction map showing scattered decks, folders, and repeated reconstruction work." },
+        { slide:"Slide 2", title:"Where project startup breaks today", purpose:"show the points where speed and delivery consistency break down in the first weeks.", keyMessage:"teams lose time searching, rebuilding, and improvising instead of starting from a sharper common base.", visual:"workflow view of kickoff, asset search, workplan drafting, and review points." },
+        { slide:"Slide 3", title:"Best-fit archetype and matched methods", purpose:"explain why this is a startup-standardization problem and which CGS assets should be activated first.", keyMessage:"the answer is a reusable first-mile model, not full delivery templating.", visual:"match panel linking archetype, frameworks, templates, and governance rules." },
+        { slide:"Slide 4", title:"Reusable starter kit structure", purpose:"show the modules of the starter kit and what becomes standardized versus what remains judgment-led.", keyMessage:"problem framing, workplan, interview guide, and storyline can be accelerated without removing senior judgment.", visual:"starter kit anatomy diagram with modular cards and review points." },
+        { slide:"Slide 5", title:"Governance and human review model", purpose:"demonstrate how quality is protected as reuse increases.", keyMessage:"human review, evidence rules, and governance ownership prevent the starter kit from becoming shallow templating.", visual:"review gate model with escalation triggers and approval checkpoints." },
+        { slide:"Slide 6", title:"Pilot next steps", purpose:"define the first service-line pilot and what success should look like.", keyMessage:"the firm should start narrow, validate the model, and then scale with discipline.", visual:"pilot checklist with owners, timeline, and success markers." },
       ]
     };
   }
@@ -314,6 +338,10 @@ function buildFolderAwareScenario(brief, folder) {
     topFiles,
     dynamicReviewFlags,
     dynamicMeta: overrides,
+    SP: {
+      ...base.SP,
+      slidesDetailed: overrides.slideDetails || []
+    },
     knowledgeSources: {
       firm: FIRM_LIBRARY,
       client: {
@@ -1006,8 +1034,23 @@ function ScreenStarterPack({ brief, onNext, clientFolder }) {
               </div>
               <h3 style={{fontSize:14,fontWeight:700,color:"rgba(255,255,255,0.8)"}}>Suggested Deck Outline</h3>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {data.SP.slides.map((s,i)=>(
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              {data.SP.slidesDetailed && data.SP.slidesDetailed.length ? data.SP.slidesDetailed.map((s,i)=>(
+                <div key={i} style={{padding:"14px 16px",borderRadius:14,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,flexWrap:"wrap"}}>
+                    <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"#6366f1",width:52,flexShrink:0}}>{s.slide}</span>
+                    <p style={{fontSize:13,color:"#fff",fontWeight:700}}>{s.title}</p>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"88px 1fr",rowGap:10,columnGap:10}}>
+                    <span style={{fontSize:11,fontWeight:700,color:"#f59e0b"}}>Purpose</span>
+                    <span style={{fontSize:12,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>{s.purpose}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:"#f59e0b"}}>Key message</span>
+                    <span style={{fontSize:12,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>{s.keyMessage}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:"#f59e0b"}}>Visual</span>
+                    <span style={{fontSize:12,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>{s.visual}</span>
+                  </div>
+                </div>
+              )) : data.SP.slides.map((s,i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",borderRadius:10,background:s.type==="title"?"rgba(245,158,11,0.1)":s.type==="subtitle"?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.015)",border:`1px solid ${s.type==="title"?"rgba(245,158,11,0.25)":"rgba(255,255,255,0.06)"}`}}>
                   <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:s.type==="title"?"#fcd34d":s.type==="subtitle"?"rgba(255,255,255,0.25)":"rgba(99,102,241,0.7)",width:52,flexShrink:0}}>{s.type==="title"?"Title":s.type==="subtitle"?"Subtitle":`Slide ${i-1}`}</span>
                   <p style={{fontSize:13,color:s.type==="title"?"#fff":s.type==="subtitle"?"rgba(255,255,255,0.5)":"rgba(255,255,255,0.7)",fontWeight:s.type==="title"?700:400}}>{s.text}</p>
