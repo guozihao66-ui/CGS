@@ -206,7 +206,7 @@ const REVIEW_FLAGS = [
 const FIRM_LIBRARY = {
   sourceType: "Google Drive Shared Drive",
   name: "CGS Firm Library",
-  filesLoaded: 28,
+  filesLoadedLabel: "1TB proprietary data",
   lastIndexed: "2026-04-12 18:08 EDT",
   fileTypes: ["Frameworks", "Templates", "Governance Memos", "Archetype Notes", "QA Rules"]
 };
@@ -601,7 +601,12 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
             const value = e.target.value;
             setSelectedBrief(value);
             const found = BRIEF_OPTIONS.find(b => b.id === value);
-            if (found) setBrief(found.brief);
+            if (found) {
+              setBrief(found.brief);
+              const mappedFolder = value === "brief-1" ? CLIENT_FOLDERS[1] : value === "brief-3" || value === "brief-5" ? CLIENT_FOLDERS[2] : CLIENT_FOLDERS[0];
+              setClientFolder(mappedFolder);
+              setUploadedFiles([]);
+            }
           }}
           style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,outline:"none",transition:"all .2s"}}
         >
@@ -628,7 +633,7 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
               <Badge color="violet">{FIRM_LIBRARY.sourceType}</Badge>
             </div>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginBottom:8}}>{FIRM_LIBRARY.name}</p>
-            <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>{FIRM_LIBRARY.filesLoaded} files loaded · Last indexed {FIRM_LIBRARY.lastIndexed}</p>
+            <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>{FIRM_LIBRARY.filesLoadedLabel} · Last indexed {FIRM_LIBRARY.lastIndexed}</p>
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:10}}>
               {FIRM_LIBRARY.fileTypes.map(type => <Badge key={type} color="slate">{type}</Badge>)}
             </div>
@@ -641,45 +646,6 @@ function ScreenIntake({ brief, setBrief, onNext, clientFolder, setClientFolder, 
             </div>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.45)",marginBottom:8}}>{clientFolder.folderName}</p>
             <p style={{fontSize:11,color:"rgba(255,255,255,0.3)",lineHeight:1.7}}>{clientFolder.files.length} files loaded · {clientFolder.files.map(f => f.type || inferFileType(f.name)).filter((v,i,a)=>a.indexOf(v)===i).join(", ")}</p>
-          </div>
-        </div>
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          <div>
-            <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Choose Client Folder</label>
-            <select
-              value={clientFolder.id}
-              onChange={e => {
-                const folder = CLIENT_FOLDERS.find(f => f.id === e.target.value);
-                if (folder) {
-                  setClientFolder(folder);
-                  setUploadedFiles([]);
-                }
-              }}
-              style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"12px 16px",color:"rgba(255,255,255,0.9)",fontSize:14,outline:"none"}}
-            >
-              {CLIENT_FOLDERS.map(folder => <option key={folder.id} value={folder.id} style={{background:"#111"}}>{folder.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{display:"block",fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Upload Company Files</label>
-            <input
-              type="file"
-              multiple
-              onChange={async e => {
-                const files = Array.from(e.target.files || []);
-                const loaded = await Promise.all(files.map(async file => ({
-                  name: file.name,
-                  type: inferFileType(file.name),
-                  content: await file.text().catch(() => `${file.name} uploaded`)
-                })));
-                if (loaded.length) {
-                  setUploadedFiles(loaded);
-                  setClientFolder({ id:"uploaded", label:"Custom Upload", folderName:`Custom Upload / ${loaded.length} files`, files: loaded });
-                }
-              }}
-              style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"10px 12px",color:"rgba(255,255,255,0.75)",fontSize:13}}
-            />
           </div>
         </div>
       </div>
